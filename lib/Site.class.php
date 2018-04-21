@@ -4,7 +4,7 @@ class Site
 {
     // config properties
     public static $title = null;
-    public static $debug = false;
+    public static $debug = true;
     public static $production = false;
     public static $defaultPage = 'home.php';
     public static $autoCreateSession = true;
@@ -55,12 +55,22 @@ class Site
         if (!(static::$_config = Cache::rawFetch(static::$rootPath))) {
             if (is_readable(static::$rootPath.'/site.json')) {
                 static::$_config = json_decode(file_get_contents(static::$rootPath.'/site.json'), true);
-                Cache::rawStore(static::$rootPath, static::$_config);
             } elseif (is_readable(static::$rootPath.'/Site.config.php')) {
                 include(static::$rootPath.'/Site.config.php');
+            }
+
+            if (static::$_config) {
                 Cache::rawStore(static::$rootPath, static::$_config);
+            } else {
+                static::$_config = [];
             }
         }
+
+        Debug::dumpVar([
+            'config' => static::$_config,
+            'rootPath' => $rootPath,
+            'hostname' => $hostname
+        ], false);
 
         static::$config = static::$_config; // TODO: deprecate
 
