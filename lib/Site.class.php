@@ -36,7 +36,7 @@ class Site
     protected static $_rootCollections;
     protected static $_config;
 
-    public static function initialize($rootPath, $hostname = null)
+    public static function initialize($rootPath, $hostname = null, array $config = null)
     {
         static::$initializeTime = microtime(true);
 
@@ -52,7 +52,9 @@ class Site
         }
 
         // load config
-        if (!(static::$_config = Cache::rawFetch(static::$rootPath))) {
+        if ($config) {
+            static::$_config = $config;
+        } elseif (!(static::$_config = Cache::rawFetch(static::$rootPath))) {
             if (is_readable(static::$rootPath.'/site.json')) {
                 static::$_config = json_decode(file_get_contents(static::$rootPath.'/site.json'), true);
             } elseif (is_readable(static::$rootPath.'/Site.config.php')) {
@@ -69,7 +71,8 @@ class Site
         Debug::dumpVar([
             'config' => static::$_config,
             'rootPath' => $rootPath,
-            'hostname' => $hostname
+            'hostname' => $hostname,
+            '$_SERVER' => $_SERVER
         ], false);
 
         static::$config = static::$_config; // TODO: deprecate
