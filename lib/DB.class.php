@@ -424,10 +424,10 @@ class DB
             $config = array_merge(array(
                 'host' => 'localhost'
                 ,'port' => 3306
-            ), Site::getConfig('mysql'));
 
+            ), Site::getConfig('database'));
             // connect to mysql database
-            self::$_mysqli = @new mysqli($config['host'], $config['username'], $config['password'], $config['database'], $config['port'], $config['socket']);
+            self::$_mysqli = new mysqli($config['host'], $config['username'], $config['password'], $config['database'], $config['port'], $config['socket']);
 
             self::$_mysqli->set_charset('utf8');
 
