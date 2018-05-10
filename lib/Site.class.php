@@ -36,13 +36,21 @@ class Site
     protected static $_rootCollections;
     protected static $_config;
 
-    public static function initialize($rootPath, $hostname = null, array $config = null)
+    public static function initialize($rootPath, $hostname = null, array $config)
     {
         static::$initializeTime = microtime(true);
 
         // prevent caching by default
         header('Cache-Control: max-age=0, no-cache, no-store, must-revalidate');
         header('Pragma: no-cache');
+
+        // TODO: delete me
+        Debug::dumpVar([
+            'rootPath' => $rootPath,
+            'hostname' => $hostname,
+            'config' => $config,
+            '$_SERVER' => $_SERVER
+        ], false, 'initializing site');
 
         // get site root
         if ($rootPath) {
@@ -51,31 +59,11 @@ class Site
             throw new Exception('No site root detected');
         }
 
-        // load config
-        if ($config) {
-            static::$_config = $config;
-        } elseif (!(static::$_config = Cache::rawFetch(static::$rootPath))) {
-            if (is_readable(static::$rootPath.'/site.json')) {
-                static::$_config = json_decode(file_get_contents(static::$rootPath.'/site.json'), true);
-            } elseif (is_readable(static::$rootPath.'/Site.config.php')) {
-                include(static::$rootPath.'/Site.config.php');
-            }
+        // get config
+        static::$_config = $config;
 
-            if (static::$_config) {
-                Cache::rawStore(static::$rootPath, static::$_config);
-            } else {
-                static::$_config = [];
-            }
-        }
-
-        Debug::dumpVar([
-            'config' => static::$_config,
-            'rootPath' => $rootPath,
-            'hostname' => $hostname,
-            '$_SERVER' => $_SERVER
-        ], false);
-
-        static::$config = static::$_config; // TODO: deprecate
+        // TODO: deprecate
+        static::$config = static::$_config;
 
         // get hostname
         if ($hostname) {
