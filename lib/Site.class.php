@@ -72,7 +72,7 @@ class Site
             if (!empty(static::$config['primary_hostname'])) {
                 static::$hostname = static::$config['primary_hostname'];
             } else {
-                throw new Exception('No hostname detected');
+                static::$hostname = 'localhost';
             }
         }
 
