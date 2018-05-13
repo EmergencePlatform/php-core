@@ -1,0 +1,17 @@
+{
+    "name": "emergence/php-core",
+    "description": "Core library for Emergence PHP applications",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Chris Alfano",
+            "email": "chris@jarv.us"
+        }
+    ],
+    "autoload": {
+        "psr-0": {
+            "": "src/"
+        }
+    }
+}
