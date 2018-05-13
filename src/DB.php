@@ -1,10 +1,5 @@
 <?php
 
-require_once('DuplicateKeyException.class.php');
-require_once('TableNotFoundException.class.php');
-require_once('QueryException.class.php');
-
-
 class DB
 {
     // deprecated:
