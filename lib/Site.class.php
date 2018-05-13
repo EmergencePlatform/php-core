@@ -580,13 +580,15 @@ class Site
         }
 
         if (static::$debug) {
-            die($report);
+            print($report);
         } else {
             if (class_exists('Email')) {
                 Email::send(static::$webmasterEmail, 'Scripting error on '.static::$hostname, $report);
             }
-            die('A problem has occurred and this request could not be handled, the webmaster has been sent a diagnostic report.');
+            print('A problem has occurred and this request could not be handled, the webmaster has been sent a diagnostic report.');
         }
+
+        exit(1);
     }
 
     public static function handleException($e)
@@ -607,13 +609,15 @@ class Site
         }
 
         if (static::$debug) {
-            die($report);
+            print($report);
         } else {
             if (class_exists('Email')) {
                 Email::send(static::$webmasterEmail, 'Unhandled '.get_class($e).' on '.static::$hostname, $report);
             }
-            die('A problem has occurred and this request could not be handled, the webmaster has been sent a diagnostic report.');
+            print('A problem has occurred and this request could not be handled, the webmaster has been sent a diagnostic report.');
         }
+
+        exit(1);
     }
 
     protected static function _getRequestReport()
