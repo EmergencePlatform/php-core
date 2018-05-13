@@ -44,14 +44,6 @@ class Site
         header('Cache-Control: max-age=0, no-cache, no-store, must-revalidate');
         header('Pragma: no-cache');
 
-        // TODO: delete me
-        Debug::dumpVar([
-            'rootPath' => $rootPath,
-            'hostname' => $hostname,
-            'config' => $config,
-            '$_SERVER' => $_SERVER
-        ], false, 'initializing site');
-
         // get site root
         if ($rootPath) {
             static::$rootPath = $rootPath;
