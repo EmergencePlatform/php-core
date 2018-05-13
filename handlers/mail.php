@@ -56,7 +56,7 @@ if (!$siteHandle) {
 
 
 // bootstrap emergence
-require('bootstrap.inc.php');
+require(__DIR__ . '/../vendor/autoload.php');
 Site::$debug = true;
 Site::initialize("/emergence/sites/$siteHandle", $hostname);
 

@@ -1,7 +1,7 @@
 <?php
 
 // bootstrap emergence
-require('bootstrap.inc.php');
+require(__DIR__ . '/../vendor/autoload.php');
 
 // only process POST requests
 if ($_SERVER['REQUEST_METHOD'] != 'POST') {
