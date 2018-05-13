@@ -424,17 +424,34 @@ class DB
             $config = array_merge(array(
                 'host' => 'localhost'
                 ,'port' => 3306
-
             ), Site::getConfig('database'));
-            // connect to mysql database
-            self::$_mysqli = new mysqli($config['host'], $config['username'], $config['password'], $config['database'], $config['port'], $config['socket']);
 
-            self::$_mysqli->set_charset('utf8');
+            // connect to mysql database, ignoring connection errors
+            $mysqli = @new mysqli($config['host'], $config['username'], $config['password'], null, $config['port'], $config['socket']);
 
-            // check for failure or connection error
-            if (mysqli_connect_error()) {
-                self::handleError('connect');
+            // handle connection errors
+            if ($mysqli->connect_errno) {
+                switch ($mysqli->connect_errno) {
+                    default:
+                        throw new Exception('Failed to connect to database: '.$mysqli->connect_error, $mysqli->connect_errno);
+                }
+                exit(1);
             }
+
+            // select database, attempting to create if needed
+            if (!$mysqli->select_db($config['database'])) {
+                if (!$mysqli->query("CREATE DATABASE `$config[database]`")) {
+                    throw new Exception('Failed to create database: '.$mysqli->error, $mysqli->errno);
+                }
+
+                $mysqli->select_db($config['database']);
+            }
+
+            // select unicode
+            $mysqli->set_charset('utf8');
+
+            // store established connection
+            self::$_mysqli = $mysqli;
 
             // set timezone to match PHP
             self::syncTimezone();
@@ -451,7 +468,7 @@ class DB
             self::finishQueryLog($queryLog);
         }
 
-        $message = sprintf("Query: %s\nReported: %s", $query, $query == 'connect' ? mysqli_connect_error() : static::$_mysqli->error);
+        $message = sprintf("Query: %s\nReported: %s", $query, static::$_mysqli->error);
 
         // get error message
         if (static::$_mysqli->errno == 1062) {
