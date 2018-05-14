@@ -404,30 +404,33 @@ class Site
         }
 
         // parse path
-        if (!is_array($path)) {
-            $path = static::splitPath($path);
+        if (is_array($path)) {
+            $path = implode('/', $path);
         }
 
-        $collectionHandle = array_shift($path);
+        // retrieve from filesystem
+        $fs = static::getFilesystem();
 
-        // get root collection
-        if (!$collectionHandle || !$collection = static::getRootCollection($collectionHandle)) {
-            throw new Exception('Could not resolve root collection: '.$collectionHandle);
-        }
+        return $fs->has($path) ? new SiteFile(basename($path), $fs->getMetadata($path)) : null;
 
-        // get node from collection
-        $node = $collection->resolvePath($path);
-
-        // try to get from parent
-        if (!$node && $checkParent) {
-            $node = Emergence::resolveFileFromParent($collectionHandle, $path);
-        }
-
-        if (!$node) {
-            $node = null;
-        }
-
-        return $node;
+        // dd([
+        //     '$node' => $node,
+        //     '$node->ID' => $node->ID,
+        //     '$node->Class' => $node->Class,
+        //     '$node->Handle' => $node->Handle,
+        //     '$node->Type' => $node->Type,
+        //     '$node->MIMEType' => $node->MIMEType,
+        //     '$node->SHA1' => $node->SHA1,
+        //     '$node->Status' => $node->Status,
+        //     '$node->Timestamp' => $node->Timestamp,
+        //     '$node->AuthorID' => $node->AuthorID,
+        //     '$node->Author' => $node->Author,
+        //     '$node->AncestorID' => $node->AncestorID,
+        //     '$node->CollectionID' => $node->CollectionID,
+        //     '$node->Collection' => $node->Collection,
+        //     '$node->RealPath' => $node->RealPath,
+        //     '$node->FullPath' => $node->FullPath
+        // ]);
     }
 
     public static function loadClass($className)
@@ -492,8 +495,9 @@ class Site
         $cacheKey = 'class-config:'.$className;
 
 
-        if (!$configFileIds = Cache::fetch($cacheKey)) {
-            $configFileIds = array();
+        if (!$configFiles = Cache::fetch($cacheKey)) {
+            $fs = static::getFilesystem();
+            $configFiles = array();
 
 
             // compute file path for given class name
@@ -509,37 +513,41 @@ class Site
 
 
             // look for composite config files first
-            $collectionPath = "php-config/$path.config.d";
-            Emergence_FS::cacheTree($collectionPath);
-            $collectionNodes = Emergence_FS::getAggregateChildren($collectionPath);
-            ksort($collectionNodes);
+            $collectionContents = $fs->listContents("php-config/{$path}.config.d", true);
 
-            foreach ($collectionNodes AS $filename => $node) {
-                if ($node->Type == 'application/php') {
-                    $configFileIds[] = $node->ID;
+            foreach ($collectionContents as $file) {
+                if ($file['extension'] == 'php') {
+                    $configFiles[] = static::$rootPath.'/'.$file['path'];
                 }
             }
 
+            sort($configFiles);
+
 
             // look for primary config file
-            $configFileNode = Site::resolvePath("php-config/$path.config.php");
-
-
-            // Fall back on looking for Old_School_Underscore_Namespacing in root
-            if (!$configFileNode && empty($namespace) && $path != $className) {
-                $configFileNode = Site::resolvePath("php-config/$className.config.php");
+            if (
+                (
+                    ($legacyPath = "php-config/{$path}.config.php")
+                    && $fs->has($legacyPath)
+                )
+                || (
+                    // Fall back on looking for Old_School_Underscore_Namespacing in root
+                    empty($namespace)
+                    && $path != $className
+                    && ($legacyPath = "php-config/$className.config.php")
+                    && $fs->has($legacyPath)
+                )
+            ) {
+                $configFiles[] = static::$rootPath.'/'.$legacyPath;
             }
 
-            if ($configFileNode && $configFileNode->MIMEType == 'application/php') {
-                $configFileIds[] = $configFileNode->ID;
-            }
 
-            Cache::store($cacheKey, $configFileIds);
+            Cache::store($cacheKey, $configFiles);
         }
 
 
-        foreach ($configFileIds AS $id) {
-            require(SiteFile::getRealPathByID($id));
+        foreach ($configFiles as $configPath) {
+            require($configPath);
         }
     }
 
@@ -728,12 +736,12 @@ class Site
      */
     public static function getFilesystem()
     {
-        static $filesystem;
+        static $fs;
 
-        if (!$filesystem) {
-            $filesystem = new League\Flysystem\Filesystem(new League\Flysystem\Adapter\Local(static::$rootPath));
+        if (!$fs) {
+            $fs = new League\Flysystem\Filesystem(new League\Flysystem\Adapter\Local(static::$rootPath));
         }
 
-        return $filesystem;
+        return $fs;
     }
 }

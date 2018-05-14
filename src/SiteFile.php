@@ -48,49 +48,51 @@ class SiteFile
         $this->_record = $record;
     }
 
-    protected $_author;
+    protected $_mimeType;
+    protected $_sha1;
     public function __get($name)
     {
         switch ($name) {
             case 'ID':
-                return $this->_record['ID'];
+                return null;
             case 'Class':
                 return __CLASS__;
             case 'Handle':
                 return $this->_handle;
             case 'Type':
             case 'MIMEType':
-                return $this->_record['Type'];
-            case 'Size':
-                return $this->_record['Size'];
-            case 'SHA1':
-                return $this->_record['SHA1'];
-            case 'Status':
-                return $this->_record['Status'];
-            case 'Timestamp':
-                return strtotime($this->_record['Timestamp']);
-            case 'AuthorID':
-                return $this->_record['AuthorID'];
-            case 'Author':
-                if (!isset($this->_author)) {
-                    $this->_author = $this->AuthorID ? Person::getByID($this->AuthorID) : null;
+                if ($this->_mimeType === null) {
+                    $extension = strtolower(substr(strrchr($this->_handle, '.'), 1));
+
+                    if ($extension && array_key_exists($extension, static::$extensionMIMETypes)) {
+                        $this->_mimeType = static::$extensionMIMETypes[$extension];
+                    } else {
+                        $this->_mimeType = File::getMIMEType($this->RealPath);
+                    }
                 }
 
-                return $this->_author;
-            case 'AncestorID':
-                return $this->_record['AncestorID'];
-            case 'CollectionID':
-                return $this->_record['CollectionID'];
-            case 'Collection':
-                if (!isset($this->_collection)) {
-                    $collectionClass = static::$collectionClass;
-                    $this->_collection = $collectionClass::getByID($this->CollectionID);
+                return $this->_mimeType;
+            case 'Size':
+                return $this->_record['size'];
+            case 'SHA1':
+                if ($this->_sha1 === null) {
+                    $this->_sha1 = sha1_file($this->RealPath);
                 }
-                return $this->_collection;
+                return $this->_sha1;
+            case 'Status':
+                return 'Normal';
+            case 'Timestamp':
+                return $this->_record['timestamp'];
+            case 'AuthorID':
+            case 'Author':
+            case 'AncestorID':
+            case 'CollectionID':
+            case 'Collection':
+                return null;
             case 'RealPath':
-                return $this->getRealPath();
+                return Site::$rootPath.'/'.$this->_record['path'];
             case 'FullPath':
-                return implode('/', $this->getFullPath());
+                return $this->_record['path'];
         }
     }
 
