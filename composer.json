@@ -13,5 +13,10 @@
         "psr-0": {
             "": "src/"
         }
+    },
+    "require": {
+        "symfony/var-dumper": "^3.4",
+        "filp/whoops": "^2.1",
+        "larapack/dd": "^1.1"
     }
 }

@@ -44,6 +44,11 @@ class Site
         header('Cache-Control: max-age=0, no-cache, no-store, must-revalidate');
         header('Pragma: no-cache');
 
+        // initialize error printer
+        $whoops = new \Whoops\Run;
+        $whoops->pushHandler(new \Whoops\Handler\PrettyPageHandler);
+        $whoops->register();
+
         // get site root
         if ($rootPath) {
             static::$rootPath = $rootPath;
@@ -95,12 +100,6 @@ class Site
 
         // register class loader
         spl_autoload_register('Site::loadClass');
-
-        // set error handle
-        set_error_handler('Site::handleError');
-
-        // register exception handler
-        set_exception_handler('Site::handleException');
 
         // check virtual system for site config
         static::loadConfig(__CLASS__);
@@ -542,74 +541,6 @@ class Site
         foreach ($configFileIds AS $id) {
             require(SiteFile::getRealPathByID($id));
         }
-    }
-
-
-    public static function handleError($errno, $errstr, $errfile, $errline)
-    {
-        if (!(error_reporting() & $errno)) {
-            return;
-        }
-
-        if (substr($errfile, 0, strlen(static::$rootPath)) == static::$rootPath) {
-            $fileID = substr(strrchr($errfile, '/'), 1);
-            $File = SiteFile::getByID($fileID);
-
-            $errfile .= ' ('.$File->Handle.')';
-        }
-
-        $report = "<h1>Error</h1><p>$errstr</p><p><b>Source:</b> $errfile<br /><b>Line:</b> $errline</p>";
-
-        if (!empty($File)) {
-            $report .= "<p><b>Author:</b> ".($File->Author ? $File->Author->Username : 'unknown')."<br /><b>Timestamp:</b> ".date('Y-m-d h:i:s', $File->Timestamp)."</p>";
-        }
-
-        $report .= static::_getRequestReport();
-        $report .= sprintf("<h2>Backtrace</h2>\n<pre>%s</pre>\n", htmlspecialchars(print_r(debug_backtrace(), true)));
-
-        if (!headers_sent()) {
-            header('Status: 500 Internal Server Error');
-        }
-
-        if (static::$debug) {
-            print($report);
-        } else {
-            if (class_exists('Email')) {
-                Email::send(static::$webmasterEmail, 'Scripting error on '.static::$hostname, $report);
-            }
-            print('A problem has occurred and this request could not be handled, the webmaster has been sent a diagnostic report.');
-        }
-
-        exit(1);
-    }
-
-    public static function handleException($e)
-    {
-        if (extension_loaded('newrelic')) {
-            newrelic_notice_error(null, $e);
-        }
-
-        // respond
-        $report = sprintf("<h1>Unhandled Exception: %s</h1>\n", get_class($e));
-        $report .= sprintf("<h2>Message</h2>\n<pre>%s</pre>\n", htmlspecialchars($e->getMessage()));
-        $report .= sprintf("<h2>Code</h2>\n<pre>%s</pre>\n", htmlspecialchars($e->getCode()));
-        $report .= static::_getRequestReport();
-        $report .= sprintf("<h2>Backtrace</h2>\n<pre>%s</pre>\n", htmlspecialchars(print_r(debug_backtrace(), true)));
-
-        if (!headers_sent()) {
-            header('Status: 500 Internal Server Error');
-        }
-
-        if (static::$debug) {
-            print($report);
-        } else {
-            if (class_exists('Email')) {
-                Email::send(static::$webmasterEmail, 'Unhandled '.get_class($e).' on '.static::$hostname, $report);
-            }
-            print('A problem has occurred and this request could not be handled, the webmaster has been sent a diagnostic report.');
-        }
-
-        exit(1);
     }
 
     protected static function _getRequestReport()
