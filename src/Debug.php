@@ -8,7 +8,7 @@ class Debug
     {
         if (Site::$debug) {
             if ($title) {
-                dump($title);
+                $var = [$title => $var];
             }
 
             dump($var);
@@ -25,7 +25,7 @@ class Debug
     {
         if (Site::$debug) {
             if ($title) {
-                dump($title);
+                $var = [$title => $var];
             }
 
             dump($var);
