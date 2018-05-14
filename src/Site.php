@@ -543,41 +543,6 @@ class Site
         }
     }
 
-    protected static function _getRequestReport()
-    {
-        $report = '';
-
-        if (isset($_SERVER['REQUEST_URI'])) {
-            $report .= sprintf("<h2>URI</h2>\n<p>%s</p>\n", htmlspecialchars($_SERVER['REQUEST_URI']));
-        }
-
-        if (isset($_SERVER['REQUEST_METHOD'])) {
-            $report .= sprintf("<h2>Request Method</h2>\n<p>%s</p>\n", htmlspecialchars($_SERVER['REQUEST_METHOD']));
-        }
-
-        if ($requestBody = file_get_contents('php://input')) {
-            $report .= sprintf("<h2>Request Body</h2>\n<p>%s</p>\n", htmlspecialchars($requestBody));
-        }
-
-        if (!empty($_SERVER['HTTP_REFERER'])) {
-            $report .= sprintf("<h2>Referrer</h2>\n<p>%s</p>\n", htmlspecialchars($_SERVER['HTTP_REFERER']));
-        }
-
-        if (!empty($_SERVER['HTTP_USER_AGENT'])) {
-            $report .= sprintf("<h2>User Agent</h2>\n<p>%s</p>\n", htmlspecialchars($_SERVER['HTTP_USER_AGENT']));
-        }
-
-        if (!empty($_SERVER['REMOTE_ADDR'])) {
-            $report .= sprintf("<h2>Remote Address</h2>\n<p>%s</p>\n", htmlspecialchars($_SERVER['REMOTE_ADDR']));
-        }
-
-        if (!empty($GLOBALS['Session']) && $GLOBALS['Session']->Person) {
-            $report .= sprintf("<h2>User</h2>\n<pre>%s</pre>\n", var_export($GLOBALS['Session']->Person->getData(), true));
-        }
-
-        return $report;
-    }
-
     public static function respondNotFound($message = 'Page not found')
     {
         if (is_callable(static::$onNotFound)) {
