@@ -34,24 +34,21 @@ class SiteCollection
     {
         switch ($name) {
             case 'ID':
-                return $this->_record['ID'];
+                return null;
             case 'Class':
                 return __CLASS__;
             case 'Handle':
-                return $this->_record['Handle'];
+                return $this->_handle;
             case 'Status':
-                return $this->_record['Status'];
+                return 'Normal';
             case 'Site':
-                return $this->_record['Site'];
+                return 'Local';
             case 'ParentID':
-                return $this->_record['ParentID'];
             case 'Parent':
-                if (!isset($this->_parent)) {
-                    $this->_parent = $this->ParentID ? static::getByID($this->ParentID) : null;
-                }
-                return $this->_parent;
+                // TODO: get SiteCollection
+                return null;
             case 'FullPath':
-                return implode('/',$this->getFullPath());
+                return $this->_record['path'];
         }
     }
 
@@ -306,29 +303,13 @@ class SiteCollection
         return static::createRecord($handle, $this);
     }
 
-    // this functions sucks, $root=null will break, caches $root'd results without key
-    protected $_fullPath;
     public function getFullPath($root = null, $prependParent = true)
     {
-        if (isset($this->_fullPath) && !$root) {
-            $path = $this->_fullPath;
-        } else {
-            if ($this->Parent) {
-                $path = $this->Parent->getFullPath($root, false);
-            } else {
-                $path = array();
-            }
-
-            array_push($path, $this->Handle);
-
-            $this->_fullPath = $path;
+        if ($root) {
+            throw Exception('non-null $root not supported');
         }
 
-        if ($prependParent && $this->Site == 'Remote') {
-            array_unshift($path, '_parent');
-        }
-
-        return $path;
+        return $this->_record['path'];
     }
 
     public static function getAllRootCollections($remote = false)

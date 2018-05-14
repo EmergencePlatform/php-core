@@ -4,38 +4,7 @@ class Emergence_FS
 {
     public static function cacheTree($path, $force = false)
     {
-        // split path into array
-        if (is_string($path)) {
-            $path = Site::splitPath($path);
-        }
-
-        // check if this tree has already been cached
-        $cacheKey = 'cacheTree:'.implode('/', $path);
-        if (!Site::$autoPull || (!$force && Cache::fetch($cacheKey))) {
-            return 0;
-        }
-
-        Cache::store($cacheKey, true);
-
-        // get tree map from parent
-        $remoteTree = Emergence::resolveCollectionFromParent($path);
-
-        if (!$remoteTree) {
-            return 0;
-        }
-
-        $filesResolved = 0;
-
-        $startTime = time();
-        foreach ($remoteTree['files'] AS $remotePath => $remoteFile) {
-            $node = Site::resolvePath($remotePath);
-
-            if ($node && $node->Timestamp >= $startTime) {
-                $filesResolved++;
-            }
-        }
-
-        return $filesResolved;
+        return 0;
     }
 
     public static function getTree($path = null, $localOnly = false, $includeDeleted = false, $conditions = array())
@@ -706,12 +675,14 @@ class Emergence_FS
 
     public static function getAggregateChildren($path)
     {
-        $children = array();
+        $fs = Site::getFilesystem();
+        $children = [];
 
-        foreach (static::getCollectionLayers($path) AS $collection) {
-            foreach ($collection->getChildren() AS $child) {
-                $children[$child->Handle] = $child;
-            }
+        foreach ($fs->listContents($path) as $child) {
+            $children[$child['basename']] =
+                $child['type'] == 'file'
+                ? new SiteFile($child['basename'], $child)
+                : new SiteCollection($child['basename'], $child);
         }
 
         return $children;

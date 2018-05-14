@@ -62,10 +62,8 @@ class SiteFile
             case 'Type':
             case 'MIMEType':
                 if ($this->_mimeType === null) {
-                    $extension = strtolower(substr(strrchr($this->_handle, '.'), 1));
-
-                    if ($extension && array_key_exists($extension, static::$extensionMIMETypes)) {
-                        $this->_mimeType = static::$extensionMIMETypes[$extension];
+                    if (!empty($this->_record['extension']) && array_key_exists($this->_record['extension'], static::$extensionMIMETypes)) {
+                        $this->_mimeType = static::$extensionMIMETypes[$this->_record['extension']];
                     } else {
                         $this->_mimeType = File::getMIMEType($this->RealPath);
                     }
@@ -88,6 +86,7 @@ class SiteFile
             case 'AncestorID':
             case 'CollectionID':
             case 'Collection':
+                // TODO: get SiteCollection
                 return null;
             case 'RealPath':
                 return Site::$rootPath.'/'.$this->_record['path'];

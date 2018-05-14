@@ -124,6 +124,42 @@ class Site
         if (class_exists('Emergence\\EventBus')) {
             Emergence\EventBus::fireEvent('initialized', 'Site');
         }
+
+        // TODO: delete
+        // $fileNode = static::resolvePath('php-config/Site.config.php');
+        // $collectionNode = static::resolvePath('php-config/Site.config.d');
+        // dd([
+        //     'php-config/Site.config.php' => [
+        //         '$fileNode' => $fileNode,
+        //         '$fileNode->ID' => $fileNode->ID,
+        //         '$fileNode->Class' => $fileNode->Class,
+        //         '$fileNode->Handle' => $fileNode->Handle,
+        //         '$fileNode->Type' => $fileNode->Type,
+        //         '$fileNode->MIMEType' => $fileNode->MIMEType,
+        //         '$fileNode->SHA1' => $fileNode->SHA1,
+        //         '$fileNode->Status' => $fileNode->Status,
+        //         '$fileNode->Timestamp' => $fileNode->Timestamp,
+        //         '$fileNode->AuthorID' => $fileNode->AuthorID,
+        //         '$fileNode->Author' => $fileNode->Author,
+        //         '$fileNode->AncestorID' => $fileNode->AncestorID,
+        //         '$fileNode->CollectionID' => $fileNode->CollectionID,
+        //         '$fileNode->Collection' => $fileNode->Collection,
+        //         '$fileNode->RealPath' => $fileNode->RealPath,
+        //         '$fileNode->FullPath' => $fileNode->FullPath
+        //     ],
+        //     'php-config/Site.config.d' => [
+        //         '$collectionNode' => $collectionNode,
+        //         '$collectionNode->ID' => $collectionNode->ID,
+        //         '$collectionNode->Class' => $collectionNode->Class,
+        //         '$collectionNode->Handle' => $collectionNode->Handle,
+        //         '$collectionNode->Site' => $collectionNode->Site,
+        //         '$collectionNode->Status' => $collectionNode->Status,
+        //         '$collectionNode->ParentID' => $collectionNode->ParentID,
+        //         '$collectionNode->Parent' => $collectionNode->Parent,
+        //         '$collectionNode->FullPath' => $collectionNode->FullPath
+        //     ],
+        //     'site-root' => Emergence_FS::getAggregateChildren('site-root')
+        // ]);
     }
 
     public static function onSiteCreated($requestData)
@@ -411,26 +447,17 @@ class Site
         // retrieve from filesystem
         $fs = static::getFilesystem();
 
-        return $fs->has($path) ? new SiteFile(basename($path), $fs->getMetadata($path)) : null;
+        if ($fs->has($path)) {
+            $entry = $fs->getMetadata($path);
+            $entry += League\Flysystem\Util::pathinfo($entry['path']);
 
-        // dd([
-        //     '$node' => $node,
-        //     '$node->ID' => $node->ID,
-        //     '$node->Class' => $node->Class,
-        //     '$node->Handle' => $node->Handle,
-        //     '$node->Type' => $node->Type,
-        //     '$node->MIMEType' => $node->MIMEType,
-        //     '$node->SHA1' => $node->SHA1,
-        //     '$node->Status' => $node->Status,
-        //     '$node->Timestamp' => $node->Timestamp,
-        //     '$node->AuthorID' => $node->AuthorID,
-        //     '$node->Author' => $node->Author,
-        //     '$node->AncestorID' => $node->AncestorID,
-        //     '$node->CollectionID' => $node->CollectionID,
-        //     '$node->Collection' => $node->Collection,
-        //     '$node->RealPath' => $node->RealPath,
-        //     '$node->FullPath' => $node->FullPath
-        // ]);
+            return $entry['type'] == 'file'
+                ? new SiteFile($entry['basename'], $entry)
+                : new SiteCollection($entry['basename'], $entry);
+        }
+
+
+        return null;
     }
 
     public static function loadClass($className)
@@ -495,7 +522,7 @@ class Site
         $cacheKey = 'class-config:'.$className;
 
 
-        if (!$configFiles = Cache::fetch($cacheKey)) {
+        // if (!$configFiles = Cache::fetch($cacheKey)) {
             $fs = static::getFilesystem();
             $configFiles = array();
 
@@ -513,11 +540,11 @@ class Site
 
 
             // look for composite config files first
-            $collectionContents = $fs->listContents("php-config/{$path}.config.d", true);
+            $collectionContents = $fs->listContents("php-config/{$path}.config.d");
 
-            foreach ($collectionContents as $file) {
-                if ($file['extension'] == 'php') {
-                    $configFiles[] = static::$rootPath.'/'.$file['path'];
+            foreach ($collectionContents as $child) {
+                if ($child['type'] == 'file' && $child['extension'] == 'php') {
+                    $configFiles[] = static::$rootPath.'/'.$child['path'];
                 }
             }
 
@@ -543,7 +570,7 @@ class Site
 
 
             Cache::store($cacheKey, $configFiles);
-        }
+        // }
 
 
         foreach ($configFiles as $configPath) {
