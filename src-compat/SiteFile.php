@@ -54,7 +54,7 @@ class SiteFile
     {
         switch ($name) {
             case 'ID':
-                return null;
+                return $this->_record['path'];
             case 'Class':
                 return __CLASS__;
             case 'Handle':
@@ -89,7 +89,7 @@ class SiteFile
                 // TODO: get SiteCollection
                 return null;
             case 'RealPath':
-                return Site::$rootPath.'/'.$this->_record['path'];
+                return static::getRealPathByID($this->_record['path']);
             case 'FullPath':
                 return $this->_record['path'];
         }
@@ -212,7 +212,7 @@ class SiteFile
 
     public static function getRealPathByID($ID)
     {
-        return Site::$rootPath.'/'.static::$dataPath.'/'.$ID;
+        return Site::$rootPath.'/'.$ID;
     }
 
     public function getName()

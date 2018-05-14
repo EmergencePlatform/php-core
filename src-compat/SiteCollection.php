@@ -34,7 +34,7 @@ class SiteCollection
     {
         switch ($name) {
             case 'ID':
-                return null;
+                return $this->_record['path'];
             case 'Class':
                 return __CLASS__;
             case 'Handle':
