@@ -722,4 +722,18 @@ class Site
             )
         );
     }
+
+    /**
+     * Get flysystem interface to site's filesystem
+     */
+    public static function getFilesystem()
+    {
+        static $filesystem;
+
+        if (!$filesystem) {
+            $filesystem = new League\Flysystem\Filesystem(new League\Flysystem\Adapter\Local(static::$rootPath));
+        }
+
+        return $filesystem;
+    }
 }
