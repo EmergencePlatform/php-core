@@ -125,6 +125,9 @@ class Site
             Emergence\EventBus::fireEvent('initialized', 'Site');
         }
 
+        Emergence\Logger::$dump = true;
+        // Emergence\Logger::core_log('');
+
         // TODO: delete
         // $fileNode = static::resolvePath('php-config/Site.config.php');
         // $collectionNode = static::resolvePath('php-config/Site.config.d');
