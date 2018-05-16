@@ -309,7 +309,7 @@ class SiteCollection
             throw Exception('non-null $root not supported');
         }
 
-        return $this->_record['path'];
+        return explode('/', $this->_record['path']);
     }
 
     public static function getAllRootCollections($remote = false)
