@@ -46,11 +46,29 @@ class Emergence_FS
         }
 
         if (!empty($fileConditions)) {
-            throw new Exception('getTreeFiles shim does not implement $fileConditions');
+            $unsupportedConditions = array_diff(array_keys($fileConditions), ['Type']);
+
+            if (count($unsupportedConditions)) {
+                throw new Exception('getTreeFiles shim does not implement $fileConditions: '.implode(', ', $unsupportedConditions));
+            }
         }
 
         if (!empty($collectionConditions)) {
             throw new Exception('getTreeFiles shim does not implement $collectionConditions');
+        }
+
+
+        // prepare filters
+        if (!empty($fileConditions['Type'])) {
+            $typeExtensions = array_flip(SiteFile::$extensionMIMETypes);
+
+            if (empty($typeExtensions[$fileConditions['Type']])) {
+                throw new Exception('getTreeFiles only supports filtering by file types listed in SiteFile::$extensionMIMETypes');
+            }
+
+            $fileExtension = $typeExtensions[$fileConditions['Type']];
+        } else {
+            $fileExtension = null;
         }
 
 
@@ -59,6 +77,10 @@ class Emergence_FS
 
         foreach (Site::getFilesystem()->listContents($path, true) as $entry) {
             if ($entry['type'] != 'file') {
+                continue;
+            }
+
+            if ($fileExtension && $entry['extension'] != $fileExtension) {
                 continue;
             }
 
