@@ -106,7 +106,7 @@ class Site
 
         // get site title
         if (!static::$title) {
-            static::$title = static::getConfig('label');
+            static::$title = static::getConfig('label') ?: static::$hostname;
         }
 
         // configure error display
