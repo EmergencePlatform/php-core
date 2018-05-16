@@ -310,7 +310,7 @@ class SiteCollection
     public function getFullPath($root = null, $prependParent = true)
     {
         if ($root) {
-            throw Exception('non-null $root not supported');
+            throw new Exception('non-null $root not supported');
         }
 
         return explode('/', $this->_record['path']);
@@ -319,21 +319,22 @@ class SiteCollection
     public static function getAllRootCollections($remote = false)
     {
         if (!is_bool($remote)) {
-            debug_print_backtrace();
-            die('SiteID must be converted to (bool)$remote');
+            throw new Exception('SiteID must be converted to (bool)$remote');
         }
 
-        $collections = array();
-        $results = DB::query(
-            'SELECT * FROM `%s` WHERE Site = "%s" AND ParentID IS NULL AND Status = "Normal" ORDER BY Handle'
-            ,array(
-                static::$tableName
-                ,$remote ? 'Remote' : 'Local'
-            )
-        );
+        if ($remote) {
+            return [];
+        }
 
-        while ($collectionRecord = $results->fetch_assoc()) {
-            $collections[] = new static($collectionRecord['Handle'], $collectionRecord);
+        // get root collections
+        $collections = [];
+
+        foreach (Site::getFilesystem()->listContents() as $entry) {
+            if ($entry['type'] != 'dir' || $entry['basename'] == '.git') {
+                continue;
+            }
+
+            $collections[] = new static($entry['basename'], $entry);
         }
 
         return $collections;
