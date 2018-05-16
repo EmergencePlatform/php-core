@@ -11,7 +11,7 @@ use Emergence\Mailer\Mailer;
 
 class Logger extends \Psr\Log\AbstractLogger
 {
-    public static $dump = false;
+    public static $dump;
 
     public static $logLevelsWrite = [
         LogLevel::EMERGENCY,
@@ -27,6 +27,22 @@ class Logger extends \Psr\Log\AbstractLogger
         LogLevel::CRITICAL
     ];
 
+
+    public static function getDump()
+    {
+        static $dump;
+
+        if ($dump === null) {
+            if (static::$dump !== null) {
+                $dump = static::$dump;
+            } else {
+                $config = Site::getConfig('logger');
+                $dump = !empty($config['dump']);
+            }
+        }
+
+        return $dump;
+    }
 
     public static function getRoot()
     {
@@ -105,7 +121,7 @@ class Logger extends \Psr\Log\AbstractLogger
 
     public function log($level, $message, array $context = array())
     {
-        if (static::$dump) {
+        if (static::getDump()) {
             dump([
                 "{$this->name}.{$level}" => [
                     '$message' => $message,
