@@ -1,5 +1,31 @@
 <?php
 
+/**
+ * This class is used to shim methods that return arrays containing file hashes. Pre-computed
+ * hashes are not currently available outside the VFS implementation, and this allows them to
+ * be returned without being calculated unless/until they're used
+ */
+class Emergence_FS_Deferred_SHA1
+{
+    private $path;
+    private $hash;
+
+    public function __construct($path)
+    {
+        $this->path = $path;
+    }
+
+    public function __toString()
+    {
+        if (!$this->hash) {
+            $this->hash = sha1_file(SiteFile::getRealPathByID($this->path));
+        }
+
+        return $this->hash;
+    }
+}
+
+
 class Emergence_FS
 {
     public static function cacheTree($path, $force = false)
@@ -14,7 +40,37 @@ class Emergence_FS
 
     public static function getTreeFiles($path = null, $localOnly = false, $fileConditions = [], $collectionConditions = [])
     {
-        return static::getTreeFilesFromTree(static::getTree($path, $localOnly, false, $collectionConditions), $fileConditions);
+        // check if any parameters not implemented (yet) by this compatibility shim are used
+        if ($localOnly) {
+            throw new Exception('getTreeFiles shim does not implement $localOnly');
+        }
+
+        if (!empty($fileConditions)) {
+            throw new Exception('getTreeFiles shim does not implement $fileConditions');
+        }
+
+        if (!empty($collectionConditions)) {
+            throw new Exception('getTreeFiles shim does not implement $collectionConditions');
+        }
+
+
+        // get files
+        $files = [];
+
+        foreach (Site::getFilesystem()->listContents($path, true) as $entry) {
+            if ($entry['type'] != 'file') {
+                continue;
+            }
+
+            $files[$entry['path']] = [
+                'ID' => $entry['path'],
+                'CollectionID' => $entry['dirname'],
+                'SHA1' => new Emergence_FS_Deferred_SHA1($entry['path']),
+                'Site' => 'Local'
+            ];
+        }
+
+        return $files;
     }
 
     public static function getTreeFilesFromTree($tree, $conditions = [])
