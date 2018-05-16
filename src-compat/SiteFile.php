@@ -50,6 +50,7 @@ class SiteFile
 
     protected $_mimeType;
     protected $_sha1;
+    protected $_collection;
     public function __get($name)
     {
         switch ($name) {
@@ -85,9 +86,14 @@ class SiteFile
             case 'Author':
             case 'AncestorID':
             case 'CollectionID':
+                return $this->_record['dirname'];
             case 'Collection':
-                // TODO: get SiteCollection
-                return null;
+                if ($this->_collection === null) {
+                    $entry = Site::getFilesystem()->getMetadata($this->CollectionID);
+                    $entry += League\Flysystem\Util::pathinfo($entry['path']);
+                    $this->_collection = new SiteCollection($entry['basename'], $entry);
+                }
+                return $this->_collection;
             case 'RealPath':
                 return static::getRealPathByID($this->_record['path']);
             case 'FullPath':
