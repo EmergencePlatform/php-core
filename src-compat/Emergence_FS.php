@@ -7,22 +7,22 @@ class Emergence_FS
         return 0;
     }
 
-    public static function getTree($path = null, $localOnly = false, $includeDeleted = false, $conditions = array())
+    public static function getTree($path = null, $localOnly = false, $includeDeleted = false, $conditions = [])
     {
         throw new Exception('TODO: implement getTree');
     }
 
-    public static function getTreeFiles($path = null, $localOnly = false, $fileConditions = array(), $collectionConditions = array())
+    public static function getTreeFiles($path = null, $localOnly = false, $fileConditions = [], $collectionConditions = [])
     {
         return static::getTreeFilesFromTree(static::getTree($path, $localOnly, false, $collectionConditions), $fileConditions);
     }
 
-    public static function getTreeFilesFromTree($tree, $conditions = array())
+    public static function getTreeFilesFromTree($tree, $conditions = [])
     {
         throw new Exception('TODO: implement getTreeFilesFromTree');
     }
 
-    public static function exportTree($sourcePath, $destinationPath, $options = array())
+    public static function exportTree($sourcePath, $destinationPath, $options = [])
     {
         throw new Exception('TODO: implement exportTree');
     }
@@ -32,7 +32,7 @@ class Emergence_FS
         throw new Exception('TODO: implement importFile');
     }
 
-    public static function importTree($sourcePath, $destinationPath, $options = array())
+    public static function importTree($sourcePath, $destinationPath, $options = [])
     {
         throw new Exception('TODO: implement importTree');
     }
@@ -78,7 +78,7 @@ class Emergence_FS
     public static function matchesExclude($relPath, array $excludes)
     {
         if ($excludes) {
-            foreach ($excludes AS $excludePattern) {
+            foreach ($excludes as $excludePattern) {
                 if (preg_match($excludePattern, $relPath)) {
                     return true;
                 }
