@@ -51,6 +51,7 @@ class SiteFile
     protected $_mimeType;
     protected $_sha1;
     protected $_collection;
+
     public function __get($name)
     {
         switch ($name) {
@@ -89,9 +90,7 @@ class SiteFile
                 return $this->_record['dirname'];
             case 'Collection':
                 if ($this->_collection === null) {
-                    $entry = Site::getFilesystem()->getMetadata($this->CollectionID);
-                    $entry += League\Flysystem\Util::pathinfo($entry['path']);
-                    $this->_collection = new SiteCollection($entry['basename'], $entry);
+                    $this->_collection = SiteCollection::getByID($this->CollectionID);
                 }
                 return $this->_collection;
             case 'RealPath':
@@ -113,24 +112,21 @@ class SiteFile
 
     public static function getByID($fileID)
     {
-        $cacheKey = 'efs:file:'.$fileID;
+        $fs = Site::getFilesystem();
 
-        if (false === ($record = Cache::fetch($cacheKey))) {
-            $record = DB::oneRecord(
-                'SELECT * FROM `%s` WHERE ID = %u'
-                ,array(
-                    static::$tableName
-                    ,$fileID
-                )
-            );
-
-            // don't cache the temporary "Phantom" records created as placeholders during write
-            if ($record['Status'] != 'Phantom') {
-                Cache::store($cacheKey, $record);
-            }
+        if (!$fs->has($fileID)) {
+            return null;
         }
 
-        return $record ? new static($record['Handle'], $record) : null;
+        $entry = $fs->getMetadata($fileID);
+
+        if ($entry['type'] != 'file') {
+            return null;
+        }
+
+        $entry += League\Flysystem\Util::pathinfo($entry['path']);
+
+        return new static($entry['basename'], $entry);
     }
 
     public static function getByHandle($collectionID, $handle)
