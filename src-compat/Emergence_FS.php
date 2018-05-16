@@ -108,7 +108,34 @@ class Emergence_FS
 
     public static function findFiles($filename, $useRegexp = false, $scope = null, $localOnly = false)
     {
-        throw new Exception('TODO: implement findFiles');
+        // check if any parameters not implemented (yet) by this compatibility shim are used
+        if ($localOnly) {
+            throw new Exception('getTreeFiles shim does not implement $localOnly');
+        }
+
+
+        // search scope for matching files
+        $files = [];
+
+        foreach (Site::getFilesystem()->listContents($scope, true) as $entry) {
+            if ($entry['type'] != 'file') {
+                continue;
+            }
+
+            if ($useRegexp) {
+                if (!preg_match('#'.str_replace('#', '\#', $filename).'#i', $entry['basename'])) {
+                    continue;
+                }
+            } else {
+                if ($entry['basename'] != $filename) {
+                    continue;
+                }
+            }
+
+            $files[$entry['path']] = new SiteFile($entry['basename'], $entry);
+        }
+
+        return $files;
     }
 
     public static function getAggregateChildren($path)
