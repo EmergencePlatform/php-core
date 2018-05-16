@@ -10,6 +10,7 @@ class SiteCollection
     // protected properties
     protected $_handle;
     protected $_record;
+    protected $_parent;
 
     public function __construct($handle, $record = null)
     {
@@ -44,9 +45,12 @@ class SiteCollection
             case 'Site':
                 return 'Local';
             case 'ParentID':
+                return $this->_record['dirname'];
             case 'Parent':
-                // TODO: get SiteCollection
-                return null;
+                if ($this->_parent === null) {
+                    $this->_parent = static::getByID($this->ParentID);
+                }
+                return $this->_parent;
             case 'FullPath':
                 return $this->_record['path'];
         }
@@ -74,21 +78,21 @@ class SiteCollection
 
     public static function getByID($collectionID)
     {
-        $cacheKey = 'efs:col:'.$collectionID;
+        $fs = Site::getFilesystem();
 
-        if (false === ($record = Cache::fetch($cacheKey))) {
-            $record = DB::oneRecord(
-                'SELECT * FROM `%s` WHERE ID = %u'
-                ,array(
-                    static::$tableName
-                    ,$collectionID
-                )
-            );
-
-            Cache::store($cacheKey, $record);
+        if (!$fs->has($collectionID)) {
+            return null;
         }
 
-        return $record ? new static($record['Handle'], $record) : null;
+        $entry = $fs->getMetadata($collectionID);
+
+        if ($entry['type'] != 'dir') {
+            return null;
+        }
+
+        $entry += League\Flysystem\Util::pathinfo($entry['path']);
+
+        return new static($entry['basename'], $entry);
     }
 
     public static function getRecordByHandle($handle, $parentID = null, $remote = false, $includeDeleted = false)
