@@ -46,7 +46,16 @@ class Site
 
         // initialize error printer
         $whoops = new \Whoops\Run;
-        $whoops->pushHandler(new \Whoops\Handler\PrettyPageHandler);
+        $whoopsHandler = new \Whoops\Handler\PrettyPageHandler();
+        $whoopsHandler->addDataTableCallback('Routing', function () {
+            return [
+                'requestPath' => Site::$requestPath,
+                'pathStack' => Site::$pathStack,
+                'resolvedPath' => Site::$resolvedPath,
+                'resolvedNode' => Site::$resolvedNode ? Site::$resolvedNode->FullPath : null
+            ];
+        });
+        $whoops->pushHandler($whoopsHandler);
         $whoops->register();
 
         // get site root
