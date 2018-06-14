@@ -49,10 +49,10 @@ class Site
         $whoopsHandler = new \Whoops\Handler\PrettyPageHandler();
         $whoopsHandler->addDataTableCallback('Routing', function () {
             return [
-                'requestPath' => Site::$requestPath,
-                'pathStack' => Site::$pathStack,
-                'resolvedPath' => Site::$resolvedPath,
-                'resolvedNode' => Site::$resolvedNode ? Site::$resolvedNode->FullPath : null
+                'requestPath' => implode('/', Site::$requestPath),
+                'resolvedPath' => implode('/', Site::$resolvedPath),
+                'resolvedNode' => Site::$resolvedNode ? Site::$resolvedNode->FullPath : null,
+                'pathStack' => implode('/', Site::$pathStack)
             ];
         });
         $whoops->pushHandler($whoopsHandler);
