@@ -21,7 +21,7 @@ do_build() {
 
   build_line "Running: composer install"
   pushd "${CACHE_PATH}" > /dev/null
-  COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev
+  COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev  --no-interaction --optimize-autoloader --classmap-authoritative
   popd > /dev/null
 }
 
