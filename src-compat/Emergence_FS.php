@@ -72,6 +72,12 @@ class Emergence_FS
         }
 
 
+        // normalize path
+        if (is_array($path)) {
+            $path = implode('/', $path);
+        }
+
+
         // get files
         $files = [];
 
