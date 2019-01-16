@@ -656,7 +656,7 @@ class Site
         if (preg_match('/^https?:\/\//i', $path)) {
             $url = $path;
         } else {
-            $url = ($_SERVER['HTTPS'] ? 'https' : 'http').'://'.static::$hostname.'/'.ltrim($path, '/');
+            $url = ($_SERVER['HTTPS'] ? 'https' : 'http').'://'.($_SERVER['HTTP_HOST'] ?: Site::getConfig('primary_hostname')).'/'.ltrim($path, '/');
         }
 
         if ($get) {
