@@ -214,7 +214,7 @@ class SiteFile
 
     public static function getRealPathByID($ID)
     {
-        return Site::$rootPath.'/'.$ID;
+        return Site::$rootPath.'/site/'.$ID;
     }
 
     public function getName()

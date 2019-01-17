@@ -534,6 +534,7 @@ class Site
         $cacheKey = 'class-config:'.$className;
 
 
+        // TODO: re-enable cache
         // if (!$configFiles = Cache::fetch($cacheKey)) {
             $fs = static::getFilesystem();
             $configFiles = array();
@@ -556,7 +557,7 @@ class Site
 
             foreach ($collectionContents as $child) {
                 if ($child['type'] == 'file' && $child['extension'] == 'php') {
-                    $configFiles[] = static::$rootPath.'/'.$child['path'];
+                    $configFiles[] = static::$rootPath.'/site/'.$child['path'];
                 }
             }
 
@@ -577,7 +578,7 @@ class Site
                     && $fs->has($legacyPath)
                 )
             ) {
-                $configFiles[] = static::$rootPath.'/'.$legacyPath;
+                $configFiles[] = static::$rootPath.'/site/'.$legacyPath;
             }
 
 
@@ -778,7 +779,7 @@ class Site
         static $fs;
 
         if (!$fs) {
-            $fs = new League\Flysystem\Filesystem(new League\Flysystem\Adapter\Local(static::$rootPath));
+            $fs = new League\Flysystem\Filesystem(new League\Flysystem\Adapter\Local(static::$rootPath.'/site'));
         }
 
         return $fs;
