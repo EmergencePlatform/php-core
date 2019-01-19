@@ -417,8 +417,11 @@ class DB
     {
         if (!isset(self::$_mysqli)) {
             $config = array_merge(array(
-                'host' => 'localhost'
-                ,'port' => 3306
+                'host' => 'localhost',
+                'port' => 3306,
+                'socket' => null,
+                'username' => null,
+                'password' => null
             ), Site::getConfig('database'));
 
             // connect to mysql database, ignoring connection errors
