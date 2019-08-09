@@ -168,6 +168,10 @@ class Emergence_FS
 
     public static function getAggregateChildren($path)
     {
+        if (is_array($path)) {
+            $path = implode('/', $path);
+        }
+
         $fs = Site::getFilesystem();
         $children = [];
 
