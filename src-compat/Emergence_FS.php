@@ -175,6 +175,10 @@ class Emergence_FS
         $fs = Site::getFilesystem();
         $children = [];
 
+        if (is_array($path)) {
+            $path = implode('/', $path);
+        }
+
         foreach ($fs->listContents($path) as $child) {
             $children[$child['basename']] =
                 $child['type'] == 'file'
