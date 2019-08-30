@@ -78,7 +78,7 @@ class Logger extends \Psr\Log\AbstractLogger
     protected $name;
     protected $path;
 
-    public function __construct($name)
+    public function __construct($name = 'general')
     {
         $config = static::getTargetConfig($name) ?: $name;
 
@@ -101,12 +101,8 @@ class Logger extends \Psr\Log\AbstractLogger
     }
 
     private static $instances = [];
-    public static function getLogger($target = 'core')
+    public static function getLogger($target = 'general')
     {
-        if ($target == 'general') {
-            $target = 'core';
-        }
-
         if (!isset(static::$instances[$target])) {
             static::$instances[$target] = new static($target);
         }
@@ -114,7 +110,7 @@ class Logger extends \Psr\Log\AbstractLogger
         return static::$instances[$target];
     }
 
-    public static function setLogger(LoggerInterface $logger, $target = 'core')
+    public static function setLogger(LoggerInterface $logger, $target = 'general')
     {
         static::$instances[$target] = $logger;
     }
