@@ -62,7 +62,7 @@ class HttpProxy
         }
 
         // get cookies
-        if (!isset($options['cookies'])) {
+        if (!isset($options['cookies']) && !empty($_SERVER['HTTP_COOKIE'])) {
             $options['cookies'] = $_SERVER['HTTP_COOKIE'];
         }
 
@@ -115,7 +115,7 @@ class HttpProxy
             curl_setopt($ch, CURLOPT_HEADER, false);
             curl_setopt($ch, CURLOPT_HEADERFUNCTION, function ($ch, $header) use ($options, &$responseHeaders) {
                 $headerLength = strlen($header);
-                @list($headerKey, $headerValue) = preg_split('/:\s*/', $header, 2);
+                @list($headerKey, $headerValue) = array_pad(preg_split('/:\s*/', $header, 2), 2, null);
                 if ($headerKey && $headerValue) {
                     $responseHeaders[$headerKey] = trim($headerValue);
                 }
