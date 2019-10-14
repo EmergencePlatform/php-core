@@ -204,7 +204,10 @@ class Site
     public static function handleRequest()
     {
         // handle CORS headers
-        if (isset($_SERVER['HTTP_ORIGIN'])) {
+        if (
+            !empty($_SERVER['HTTP_ORIGIN'])
+            && $_SERVER['HTTP_ORIGIN'] != 'null'
+        ) {
             $hostname = strtolower(parse_url($_SERVER['HTTP_ORIGIN'], PHP_URL_HOST));
             if ($hostname == strtolower(static::$hostname) || static::$permittedOrigins == '*' || in_array($hostname, static::$permittedOrigins)) {
                 header('Access-Control-Allow-Origin: '.$_SERVER['HTTP_ORIGIN']);
