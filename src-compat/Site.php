@@ -209,7 +209,12 @@ class Site
             && $_SERVER['HTTP_ORIGIN'] != 'null'
         ) {
             $hostname = strtolower(parse_url($_SERVER['HTTP_ORIGIN'], PHP_URL_HOST));
-            if ($hostname == strtolower(static::$hostname) || static::$permittedOrigins == '*' || in_array($hostname, static::$permittedOrigins)) {
+            if (
+                $hostname == strtolower(static::$hostname)
+                || (!empty($_SERVER['HTTP_HOST']) && $hostname == strtolower($_SERVER['HTTP_HOST']))
+                || static::$permittedOrigins == '*'
+                || in_array($hostname, static::$permittedOrigins)
+            ) {
                 header('Access-Control-Allow-Origin: '.$_SERVER['HTTP_ORIGIN']);
                 header('Access-Control-Allow-Credentials: true');
                 //header('Access-Control-Max-Age: 86400')
