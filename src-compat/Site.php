@@ -610,6 +610,22 @@ class Site
         return explode('/', ltrim($path, '/'));
     }
 
+    public static function isUsingHttps()
+    {
+        if (
+            isset($_SERVER['HTTP_X_FORWARDED_PROTO'])
+            && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) == 'https'
+        ) {
+            return true;
+        }
+
+        if (!empty($_SERVER['HTTPS'])) {
+            return true;
+        }
+
+        return false;
+    }
+
     public static function redirect($path, $get = false, $hash = false)
     {
         if (is_array($path)) {
@@ -619,7 +635,7 @@ class Site
         if (preg_match('/^https?:\/\//i', $path)) {
             $url = $path;
         } else {
-            $url = ($_SERVER['HTTPS'] ? 'https' : 'http').'://'.($_SERVER['HTTP_HOST'] ?: Site::getConfig('primary_hostname')).'/'.ltrim($path, '/');
+            $url = (static::isUsingHttps() ? 'https' : 'http').'://'.($_SERVER['HTTP_HOST'] ?: Site::getConfig('primary_hostname')).'/'.ltrim($path, '/');
         }
 
         if ($get) {
