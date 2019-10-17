@@ -8,6 +8,10 @@ pkg_build_deps=(
 )
 
 
+do_setup_environment() {
+  set_buildtime_env COMPOSER_ALLOW_SUPERUSER "1"
+}
+
 do_build() {
   build_line "Copying core (excluding vendor)"
   pushd "${PLAN_CONTEXT}" > /dev/null
@@ -21,7 +25,7 @@ do_build() {
 
   build_line "Running: composer install"
   pushd "${CACHE_PATH}" > /dev/null
-  COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev  --no-interaction --optimize-autoloader --classmap-authoritative
+  composer install --no-dev  --no-interaction --optimize-autoloader --classmap-authoritative
   popd > /dev/null
 }
 
