@@ -113,6 +113,13 @@ class Site
         // check virtual system for site config
         static::loadConfig(__CLASS__);
 
+        // load all bootstraps scripts
+        foreach (static::getFilesystem()->listContents('php-bootstraps') as $bootstrapFile) {
+            if ($bootstrapFile['type'] == 'file' && $bootstrapFile['extension'] == 'php') {
+                require_once(static::$rootPath.'/site/'.$bootstrapFile['path']);
+            }
+        }
+
         // get site title
         if (!static::$title) {
             static::$title = static::getConfig('label') ?: static::$hostname;
