@@ -45,7 +45,7 @@ class Site
         header('Pragma: no-cache');
 
         // initialize error printer
-        $whoops = new \Whoops\Run;
+        $whoops = static::getWhoops();
         $whoopsHandler = new \Whoops\Handler\PrettyPageHandler();
         $whoopsHandler->addDataTableCallback('Routing', function () {
             return [
@@ -768,5 +768,21 @@ class Site
         }
 
         return $fs;
+    }
+
+    /**
+     * Get Whoops instance
+     *
+     * @return \Whoops\RunInterface
+     */
+    public static function getWhoops()
+    {
+        static $whoops;
+
+        if (!$whoops) {
+            $whoops = new \Whoops\Run;
+        }
+
+        return $whoops;
     }
 }
