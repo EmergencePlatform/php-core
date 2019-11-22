@@ -21,7 +21,7 @@ class EventBus
             $_EVENT['CURRENT_HANDLER_PATH'] = $sitePath;
             $_EVENT['CURRENT_HANDLER_ID'] = $fileSystemPath;
 
-            // create a closure for executing hanlder so that $_EMAIL is the only variable pre-defined in its scope
+            // create a closure for executing hanlder so that $_EVENT is the only variable pre-defined in its scope
             $handler = function() use (&$_EVENT) {
                 return include($_EVENT['CURRENT_HANDLER_ID']);
             };
