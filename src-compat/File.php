@@ -38,7 +38,7 @@ class File
         return $p ? substr($mimeInfo, 0, $p) : $mimeInfo;
     }
 
-    protected static function getFileInfoResource($options = FILEINFO_NONE)
+    public static function getFileInfoResource($options = FILEINFO_NONE)
     {
         try {
             // try with configured magicPath
