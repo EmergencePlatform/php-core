@@ -90,6 +90,8 @@ class Site
                 $path = substr($path, 0, $qPos);
             }
 
+            $path = rawurldecode($path);
+
             static::$pathStack = static::$requestPath = static::splitPath($path);
         }
 
