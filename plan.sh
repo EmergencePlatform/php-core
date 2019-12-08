@@ -1,6 +1,6 @@
 pkg_name=php-core
 pkg_origin=emergence
-pkg_version="0.2.4"
+pkg_version="0.2.5"
 pkg_maintainer="Chris Alfano <chris@jarv.us>"
 pkg_license=("MIT")
 pkg_build_deps=(
