@@ -142,45 +142,6 @@ class Site
         if (class_exists('Emergence\\EventBus')) {
             Emergence\EventBus::fireEvent('initialized', 'Site');
         }
-
-        // Emergence\Logger::$dump = true;
-        // Emergence\Logger::core_log('');
-
-        // TODO: delete
-        // $fileNode = static::resolvePath('php-config/Site.config.php');
-        // $collectionNode = static::resolvePath('php-config/Site.config.d');
-        // dd([
-        //     'php-config/Site.config.php' => [
-        //         '$fileNode' => $fileNode,
-        //         '$fileNode->ID' => $fileNode->ID,
-        //         '$fileNode->Class' => $fileNode->Class,
-        //         '$fileNode->Handle' => $fileNode->Handle,
-        //         '$fileNode->Type' => $fileNode->Type,
-        //         '$fileNode->MIMEType' => $fileNode->MIMEType,
-        //         '$fileNode->SHA1' => $fileNode->SHA1,
-        //         '$fileNode->Status' => $fileNode->Status,
-        //         '$fileNode->Timestamp' => $fileNode->Timestamp,
-        //         '$fileNode->AuthorID' => $fileNode->AuthorID,
-        //         '$fileNode->Author' => $fileNode->Author,
-        //         '$fileNode->AncestorID' => $fileNode->AncestorID,
-        //         '$fileNode->CollectionID' => $fileNode->CollectionID,
-        //         '$fileNode->Collection' => $fileNode->Collection,
-        //         '$fileNode->RealPath' => $fileNode->RealPath,
-        //         '$fileNode->FullPath' => $fileNode->FullPath
-        //     ],
-        //     'php-config/Site.config.d' => [
-        //         '$collectionNode' => $collectionNode,
-        //         '$collectionNode->ID' => $collectionNode->ID,
-        //         '$collectionNode->Class' => $collectionNode->Class,
-        //         '$collectionNode->Handle' => $collectionNode->Handle,
-        //         '$collectionNode->Site' => $collectionNode->Site,
-        //         '$collectionNode->Status' => $collectionNode->Status,
-        //         '$collectionNode->ParentID' => $collectionNode->ParentID,
-        //         '$collectionNode->Parent' => $collectionNode->Parent,
-        //         '$collectionNode->FullPath' => $collectionNode->FullPath
-        //     ],
-        //     'site-root' => Emergence_FS::getAggregateChildren('site-root')
-        // ]);
     }
 
     public static function onSiteCreated($requestData)
