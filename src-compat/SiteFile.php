@@ -76,7 +76,11 @@ class SiteFile
                 return $this->_record['size'];
             case 'SHA1':
                 if ($this->_sha1 === null) {
-                    $this->_sha1 = sha1_file($this->RealPath);
+                    $cacheKey = "sha1:$this->RealPath";
+                    if (!$this->_sha1 = Cache::rawFetch($cacheKey)) {
+                        $this->_sha1 = sha1_file($this->RealPath);
+                        Cache::rawStore($cacheKey, $this->_sha1);
+                    }
                 }
                 return $this->_sha1;
             case 'Status':
@@ -214,6 +218,10 @@ class SiteFile
 
     public static function getRealPathByID($ID)
     {
+        if (is_int($ID)) {
+            return '/src/staging.2020.phillytechweek.com/.data/file-data/'.$ID;
+        }
+
         return Site::$rootPath.'/site/'.$ID;
     }
 
