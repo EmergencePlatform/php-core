@@ -372,6 +372,15 @@ class DB
 
     protected static function startQueryLog($query)
     {
+        static $queryLog = null;
+        if ($queryLog === null) {
+            $queryLog = Cache::fetch('flags/query-log');
+        }
+
+        if ($queryLog && is_string($queryLog) && $queryLog[0] == '/') {
+            file_put_contents($queryLog, "{$query}\n", FILE_APPEND);
+        }
+
         if (!Site::$debug) {
             return false;
         }
