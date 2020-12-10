@@ -2,8 +2,6 @@
 
 class File
 {
-    public static $magicPath = null;// '/usr/share/misc/magic.mgc'
-
     public static function getMIMEType($filename)
     {
         // get mime type
@@ -40,20 +38,6 @@ class File
 
     public static function getFileInfoResource($options = FILEINFO_NONE)
     {
-        try {
-            // try with configured magicPath
-            $finfo = finfo_open($options, static::$magicPath);
-        } catch (Exception $e) {
-            try {
-                // try with environmental MAGIC if present
-                $finfo = finfo_open($options);
-            } catch (Exception $e) {
-                // try with environmental MAGIC unset
-                putenv('MAGIC');
-                $finfo = finfo_open($options);
-            }
-        }
-
-        return $finfo;
+        return finfo_open($options);
     }
 }
