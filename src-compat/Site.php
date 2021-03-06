@@ -4,8 +4,8 @@ class Site
 {
     // config properties
     public static $title = null;
-    public static $debug = true;
-    public static $production = false;
+    public static $debug = false;
+    public static $production = true;
     public static $defaultPage = 'home.php';
     public static $autoCreateSession = true;
     public static $listCollections = false;
@@ -44,18 +44,44 @@ class Site
         header('Cache-Control: max-age=0, no-cache, no-store, must-revalidate');
         header('Pragma: no-cache');
 
-        // initialize error printer
+        // initialize error handler
         $whoops = static::getWhoops();
-        $whoopsHandler = new \Whoops\Handler\PrettyPageHandler();
-        $whoopsHandler->addDataTableCallback('Routing', function () {
-            return [
-                'requestPath' => implode('/', Site::$requestPath),
-                'resolvedPath' => implode('/', Site::$resolvedPath),
-                'resolvedNode' => Site::$resolvedNode ? Site::$resolvedNode->FullPath : null,
-                'pathStack' => implode('/', Site::$pathStack)
-            ];
-        });
-        $whoops->pushHandler($whoopsHandler);
+
+        if (static::$debug) {
+            $whoops->writeToOutput(true);
+
+            $debugHandler = new \Whoops\Handler\PrettyPageHandler();
+            $debugHandler->addDataTableCallback(
+                'Routing',
+                function () {
+                    return [
+                        'requestPath' => implode('/', Site::$requestPath),
+                        'resolvedPath' => implode('/', Site::$resolvedPath),
+                        'resolvedNode' => Site::$resolvedNode ? Site::$resolvedNode->FullPath : null,
+                        'pathStack' => implode('/', Site::$pathStack)
+                    ];
+                }
+            );
+            $whoops->pushHandler($debugHandler);
+        } else {
+            $whoops->writeToOutput(true);
+
+            $whoops->pushHandler(
+                function ($exception, $inspector, $run) {
+                    \Emergence\Logger::crash_error(
+                        '{exceptionName}: {exceptionMessage}',
+                        [
+                            '$frames' => $inspector->getFrames(),
+                            'exceptionName' => $inspector->getExceptionName(),
+                            'exceptionMessage' => $inspector->getExceptionMessage()
+                        ]
+                    );
+                    echo "An unexpected problem has prevented your request from being handled. The site's crash log and/or webmaster mailbox should contain a report. If you are this website's developer, enable debugging to see error details directly.";
+                    return \Whoops\Handler\Handler::QUIT;
+                }
+            );
+        }
+
         $whoops->register();
 
         // get site root
