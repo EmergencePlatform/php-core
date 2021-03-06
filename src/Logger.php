@@ -126,6 +126,13 @@ class Logger extends \Psr\Log\AbstractLogger
             ]);
         }
 
+        if (isset($context['$frames'])) {
+            $frames = $context['$frames'];
+            unset($context['$frames']);
+        } else {
+            $frames = null;
+        }
+
         if (in_array($level, static::$logLevelsWrite)) {
             file_put_contents(
                 $this->path,
@@ -146,21 +153,26 @@ class Logger extends \Psr\Log\AbstractLogger
                     .'<dt>Level</dt><dd>'.$level.'</dd>'
                     .'<dt>Message</dt><dd>'.htmlspecialchars($message).'</dd>'
                     .'<dt>Context</dt><dd><pre>'.htmlspecialchars(print_r($context, true)).'</pre></dd>'
-                    .'<dt>Context</dt><dd><pre>'.htmlspecialchars(implode("\n", static::buildBacktraceLines())).'</pre></dd>'
+                    .'<dt>Backtrace</dt><dd><pre>'.htmlspecialchars(implode("\n", static::buildBacktraceLines($frames))).'</pre></dd>'
             );
         }
     }
 
-    public static function buildBacktraceLines()
+    public static function buildBacktraceLines($frames = null)
     {
-        $backtrace = debug_backtrace();
-        $lines = array();
-
-        // trim call to this method
-        array_shift($backtrace);
+        if (!$frames) {
+            $frames = debug_backtrace();
+            // trim call to this method
+            array_shift($frames);
+        }
 
         // build friendly output lines from backtrace frames
-        while ($frame = array_shift($backtrace)) {
+        $lines = array();
+        foreach ($frames as $frame) {
+            if (!is_array($frame)) {
+                $frame = $frame->getRawFrame();
+            }
+
             if (!empty($frame['file']) && strpos($frame['file'], \Site::$rootPath.'/data/') === 0) {
                 $fileNode = \SiteFile::getByID(basename($frame['file']));
 
