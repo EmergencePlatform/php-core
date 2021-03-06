@@ -130,8 +130,8 @@ class Logger extends \Psr\Log\AbstractLogger
             file_put_contents(
                 $this->path,
                 date('Y-m-d H:i:s')." [$level] $message\n\t"
-                    ."context: ".trim(str_replace(PHP_EOL, "\n\t", print_r($context, true)))."\n"
-                    ."\tbacktrace:\n\t\t".implode("\n\t\t", static::buildBacktraceLines())
+                    ."context:\n\t\t".trim(str_replace(PHP_EOL, "\n\t\t", var_export($context, true)))."\n"
+                    ."\tbacktrace:\n\t\t".implode("\n\t\t", static::buildBacktraceLines($frames))
                     ."\n\n",
                 FILE_APPEND
             );
