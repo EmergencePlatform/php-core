@@ -59,7 +59,11 @@ class Cache
         } elseif (function_exists('apc_inc')) {
             return apc_inc($key, $value, $ttl);
         } else {
-            return static::$fallbackCache[$key]++;
+            if (!array_key_exists($key, static::$fallbackCache)) {
+                static::$fallbackCache[$key] = 0;
+            }
+
+            return ++static::$fallbackCache[$key];
         }
     }
 
@@ -70,7 +74,11 @@ class Cache
         } elseif (function_exists('apc_dec')) {
             return apc_dec($key, $value, $ttl);
         } else {
-            return static::$fallbackCache[$key]++;
+            if (!array_key_exists($key, static::$fallbackCache)) {
+                static::$fallbackCache[$key] = 0;
+            }
+
+            return --static::$fallbackCache[$key];
         }
     }
 
