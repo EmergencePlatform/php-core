@@ -2,34 +2,76 @@
 
 class Cache
 {
+    private static $fallbackCache = [];
+
     public static function rawFetch($key)
     {
-        return function_exists('apcu_fetch') ? apcu_fetch($key) : apc_fetch($key);
+        if (function_exists('apcu_fetch')) {
+            return apcu_fetch($key);
+        } elseif (function_exists('apc_fetch')) {
+            return apc_fetch($key);
+        } elseif (array_key_exists($key, static::$fallbackCache)) {
+            return static::$fallbackCache[$key];
+        } else {
+            return false;
+        }
     }
 
     public static function rawStore($key, $value, $ttl = 0)
     {
-        return function_exists('apcu_store') ? apcu_store($key, $value, $ttl) : apc_store($key, $value, $ttl);
+        if (function_exists('apc_store')) {
+            return apc_store($key, $value, $ttl);;
+        } elseif (function_exists('apcu_store')) {
+            return apcu_store($key, $value, $ttl);
+        } else {
+            static::$fallbackCache[$key] = $value;
+            return true;
+        }
     }
 
     public static function rawDelete($key)
     {
-        return function_exists('apcu_delete') ? apcu_delete($key) : apc_delete($key);
+        if (function_exists('apcu_delete')) {
+            return apcu_delete($key);
+        } elseif (function_exists('apc_delete')) {
+            return apc_delete($key, $value, $ttl);
+        } else {
+            unset(static::$fallbackCache[$key]);
+            return true;
+        }
     }
 
     public static function rawExists($key)
     {
-        return function_exists('apcu_exists') ? apcu_exists($key) : apc_exists($key);
+        if (function_exists('apcu_exists')) {
+            return apcu_exists($key);
+        } elseif (function_exists('apc_exists')) {
+            return apc_exists($key, $value, $ttl);
+        } else {
+            return array_key_exists($key, static::$fallbackCache);
+        }
     }
 
     public static function rawIncrease($key, $step = 1)
     {
-        return function_exists('apcu_inc') ? apcu_inc($key) : apc_inc($key);
+        if (function_exists('apcu_inc')) {
+            return apcu_inc($key);
+        } elseif (function_exists('apc_inc')) {
+            return apc_inc($key, $value, $ttl);
+        } else {
+            return static::$fallbackCache[$key]++;
+        }
     }
 
     public static function rawDecrease($key, $step = 1)
     {
-        return function_exists('apcu_dec') ? apcu_dec($key) : apc_dec($key);
+        if (function_exists('apcu_dec')) {
+            return apcu_dec($key);
+        } elseif (function_exists('apc_dec')) {
+            return apc_dec($key, $value, $ttl);
+        } else {
+            return static::$fallbackCache[$key]++;
+        }
     }
 
     public static function getKeyPrefix()
