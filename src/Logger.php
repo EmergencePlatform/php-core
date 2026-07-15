@@ -172,7 +172,7 @@ class Logger extends \Psr\Log\AbstractLogger
             if (!empty($frame['file']) && str_starts_with($frame['file'], \Site::$rootPath.'/data/')) {
                 $fileNode = \SiteFile::getByID(basename($frame['file']));
 
-                if ($fileNode) {
+                if ($fileNode instanceof \SiteFile) {
                     $frame['file'] = 'emergence:'.$fileNode->FullPath;
                 }
             }

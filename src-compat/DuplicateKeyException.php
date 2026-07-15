@@ -15,12 +15,12 @@ class DuplicateKeyException extends Exception
         parent::__construct($message, $code, $previous);
     }
 
-    public function getDuplicateKey()
+    public function getDuplicateKey(): ?string
     {
         return $this->duplicateKey;
     }
 
-    public function getDuplicateValue()
+    public function getDuplicateValue(): ?string
     {
         return $this->duplicateValue;
     }

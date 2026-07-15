@@ -106,7 +106,7 @@ class Cache
         return static::rawDelete(static::localizeKey($key));
     }
 
-    public static function exists($key)
+    public static function exists($key): bool|array
     {
         return static::rawExists(static::localizeKey($key));
     }
@@ -121,7 +121,7 @@ class Cache
         return static::rawDecrease(static::localizeKey($key), $step);
     }
 
-    public static function getIterator($pattern)
+    public static function getIterator($pattern): \CacheIterator
     {
         // sanity check pattern
         if (!preg_match('/^(.).+\1[a-zA-Z]*$/', (string) $pattern)) {
@@ -129,7 +129,7 @@ class Cache
         }
 
         // modify pattern to insert key prefix and isolate matches to this site
-        $prefixPattern = preg_quote((string) static::getKeyPrefix());
+        $prefixPattern = preg_quote(static::getKeyPrefix());
         if ($pattern[1] == '^') {
             $pattern = substr_replace($pattern, $prefixPattern, 2, 0);
         } else {

@@ -44,6 +44,8 @@ class SiteCollection
                 }
                 return $this->_parent;
         }
+
+        return null;
     }
 
     public function __isset(string $name)
@@ -156,7 +158,7 @@ class SiteCollection
         return $children;
     }
 
-    public function getFilesTree()
+    public function getFilesTree(): array
     {
         return SiteFile::getTree($this);
     }
@@ -210,7 +212,7 @@ class SiteCollection
         $fileClass = static::$fileClass;
 
         // try to get collection record
-        if ($collection = static::getByHandle($handle, $this->ID, $this->Site == 'Remote')) {
+        if (($collection = static::getByHandle($handle, $this->ID, $this->Site == 'Remote')) instanceof \SiteCollection) {
             return $collection;
         }
 
@@ -272,7 +274,7 @@ class SiteCollection
         return $fileClass::create($parentCollection->ID, $path[0], $data, $ancestorID);
     }
 
-    public function getLocalizedCollection()
+    public function getLocalizedCollection(): ?\SiteCollection
     {
         if ($this->Site == 'Local') {
             return $this;
@@ -288,9 +290,9 @@ class SiteCollection
         $localNode = null;
         while ($foreignNode = array_pop($tree)) {
             $parentLocalNode = $localNode;
-            $localNode = static::getByHandle($foreignNode->Handle, $parentLocalNode ? $parentLocalNode->ID : null);
+            $localNode = static::getByHandle($foreignNode->Handle, $parentLocalNode instanceof \SiteCollection ? $parentLocalNode->ID : null);
 
-            if (!$localNode) {
+            if (!$localNode instanceof \SiteCollection) {
                 $localNode = static::create($foreignNode->Handle, $parentLocalNode);
             }
         }
@@ -341,12 +343,12 @@ class SiteCollection
         return $collections;
     }
 
-    public static function getOrCreateRootCollection($handle, $remote = false)
+    public static function getOrCreateRootCollection($handle, $remote = false): ?\SiteCollection
     {
         return static::getOrCreateCollection($handle, null, $remote);
     }
 
-    public static function getOrCreateCollection($handle, $parentCollection = null, $remote = false)
+    public static function getOrCreateCollection($handle, $parentCollection = null, $remote = false): ?\SiteCollection
     {
         if (!is_bool($remote)) {
             debug_print_backtrace();
@@ -357,7 +359,7 @@ class SiteCollection
             $remote = $parentCollection->Site == 'Remote';
         }
 
-        if (!$collection = static::getByHandle($handle, $parentCollection ? $parentCollection->ID : null, $remote)) {
+        if (!($collection = static::getByHandle($handle, $parentCollection ? $parentCollection->ID : null, $remote)) instanceof \SiteCollection) {
             static::createRecord($handle, $parentCollection, $remote);
             $collection = static::getByHandle($handle, $parentCollection ? $parentCollection->ID : null, $remote);
         }
@@ -369,7 +371,7 @@ class SiteCollection
         return $collection;
     }
 
-    public static function create($handle, $parentCollection = null, $remote = false)
+    public static function create($handle, $parentCollection = null, $remote = false): ?\SiteCollection
     {
         $collectionID = static::createRecord($handle, $parentCollection, $remote);
 
@@ -552,7 +554,7 @@ class SiteCollection
         return $data;
     }
 
-    public static function getOrCreatePath($path, SiteCollection $root = null)
+    public static function getOrCreatePath($path, SiteCollection $root = null): ?\SiteCollection
     {
         if (!is_array($path)) {
             $path = Site::splitPath($path);

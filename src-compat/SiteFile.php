@@ -95,6 +95,8 @@ class SiteFile
             case 'RealPath':
                 return static::getRealPathByID($this->_record['path']);
         }
+
+        return null;
     }
 
     public function __isset(string $name)
@@ -126,7 +128,7 @@ class SiteFile
         return new static($entry['basename'], $entry);
     }
 
-    public static function getByHandle($collectionID, $handle): ?self
+    public static function getByHandle(string $collectionID, $handle): ?self
     {
         $cacheKey = static::getCacheKey($collectionID, $handle);
 
@@ -203,7 +205,7 @@ class SiteFile
         return $revisions;
     }
 
-    public function getRealPath()
+    public function getRealPath(): string
     {
         return static::getRealPathByID($this->ID);
     }
@@ -567,10 +569,10 @@ class SiteFile
         return $data;
     }
 
-    public static function fireFileEvent($path, $event, $payload = [])
+    public static function fireFileEvent($path, $event, $payload = []): ?array
     {
         if (!class_exists(\Emergence\EventBus::class)) {
-            return;
+            return null;
         }
 
         return \Emergence\EventBus::fireEvent($event, array_merge(['Emergence', 'FS'], $path), $payload);
