@@ -132,7 +132,7 @@ class Emergence
         fseek($fp, 0);
 
         // read and check status
-        [$protocol, $status, $message] = explode(' ', trim(fgetss($fp)));
+        [$protocol, $status, $message] = explode(' ', trim(fgets($fp)));
 
         return [
             'status' => (int)$status,
@@ -196,10 +196,7 @@ class Emergence
             }
 
             // read headers until a blank line is found
-            while ($header = trim(fgetss($remoteResponse['resource']))) {
-                if ($header === '0') {
-                    break;
-                }
+            while ($header = trim(fgets($remoteResponse['resource']))) {
                 [$key, $value] = preg_split('/:\s*/', $header, 2);
                 $key = strtolower($key);
 
@@ -231,10 +228,8 @@ class Emergence
             return false;
         }
 
-        while ($header = trim(fgetss($remoteResponse['resource']))) {
-            if ($header === '0') {
-                break;
-            }
+        // skip headers until a blank line is found
+        while ($header = trim(fgets($remoteResponse['resource']))) {
         }
 
         return json_decode(stream_get_contents($remoteResponse['resource']), true);
