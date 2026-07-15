@@ -2,7 +2,7 @@
 
 class File
 {
-    public static function getMIMEType($filename)
+    public static function getMIMEType($filename): string
     {
         // get mime type
         $finfo = static::getFileInfoResource(FILEINFO_MIME);
@@ -19,7 +19,7 @@ class File
         return $p ? substr($mimeInfo, 0, $p) : $mimeInfo;
     }
 
-    public static function getMIMETypeFromContents($fileContents)
+    public static function getMIMETypeFromContents($fileContents): string
     {
         // get mime type
         $finfo = static::getFileInfoResource(FILEINFO_MIME);
@@ -36,7 +36,7 @@ class File
         return $p ? substr($mimeInfo, 0, $p) : $mimeInfo;
     }
 
-    public static function getFileInfoResource($options = FILEINFO_NONE)
+    public static function getFileInfoResource($options = FILEINFO_NONE): \finfo|false
     {
         return finfo_open($options);
     }

@@ -2,8 +2,8 @@
 
 class DuplicateKeyException extends Exception
 {
-    private $duplicateKey;
-    private $duplicateValue;
+    private ?string $duplicateKey = null;
+    private ?string $duplicateValue = null;
 
     public function __construct($message, $code = 0, Exception $previous = null)
     {

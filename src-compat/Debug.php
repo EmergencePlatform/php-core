@@ -16,9 +16,8 @@ class Debug
 
         if ($exit) {
             exit();
-        } else {
-            return $var;
         }
+        return $var;
     }
 
     public static function dumpVar($var, $exit = true, $title = null)
@@ -33,9 +32,8 @@ class Debug
 
         if ($exit) {
             exit();
-        } else {
-            return $var;
         }
+        return $var;
     }
 
     public static function logMessage($message, $source = null)
@@ -43,7 +41,7 @@ class Debug
         return static::log(['message' => $message], $source);
     }
 
-    public static function log($entry, $source = null)
+    public static function log($entry, $source = null): void
     {
         if (!Site::$debug) {
             return;
@@ -55,7 +53,7 @@ class Debug
         ]);
     }
 
-    protected static function _detectSource()
+    protected static function _detectSource(): string
     {
         $backtrace = debug_backtrace();
 
@@ -65,7 +63,8 @@ class Debug
                     continue;
                 }
                 return $trace['class'];
-            } elseif (!empty($trace['file'])) {
+            }
+            if (!empty($trace['file'])) {
                 return basename($trace['file']);
             }
         }
@@ -74,7 +73,7 @@ class Debug
     }
 
     protected static $_traceHandle;
-    public static function writeTrace($message, $data = [])
+    public static function writeTrace($message, $data = []): void
     {
         if (!static::$_traceHandle) {
             $filePath = Site::$rootPath.'/site-data/trace-logs/';

@@ -8,7 +8,10 @@ use Emergence_FS;
 
 class EventBus
 {
-    public static function fireEvent($name, $context, $payload = [])
+    /**
+     * @return mixed[]
+     */
+    public static function fireEvent($name, $context, $payload = []): array
     {
         $_EVENT = array_merge($payload, [
             'NAME' => $name,
@@ -55,7 +58,7 @@ class EventBus
         while (true) {
             $contextPath = $rootCollection;
 
-            if (count($context)) {
+            if (count($context) > 0) {
                 $contextPath .= '/'.implode('/', $context);
             }
 
@@ -81,7 +84,7 @@ class EventBus
                 }
             }
 
-            if (count($context)) {
+            if (count($context) > 0) {
                 array_pop($context);
             } else {
                 break;

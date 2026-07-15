@@ -50,12 +50,7 @@ class Logger extends \Psr\Log\AbstractLogger
 
         if ($root === null) {
             $config = Site::getConfig('logger');
-
-            if (!empty($config['root'])) {
-                $root = rtrim($config['root'], '/');
-            } else {
-                $root = false;
-            }
+            $root = empty($config['root']) ? false : rtrim($config['root'], '/');
         }
 
         return $root;
@@ -67,7 +62,7 @@ class Logger extends \Psr\Log\AbstractLogger
 
         if ($targets === null) {
             $config = Site::getConfig('logger');
-            $targets = !empty($config['targets']) ? $config['targets'] : [];
+            $targets = empty($config['targets']) ? [] : $config['targets'];
         }
 
         return $targets[$name] ?? null;
@@ -100,7 +95,7 @@ class Logger extends \Psr\Log\AbstractLogger
         }
     }
 
-    private static $instances = [];
+    private static array $instances = [];
     public static function getLogger($target = 'general')
     {
         if (!isset(static::$instances[$target])) {
@@ -110,12 +105,12 @@ class Logger extends \Psr\Log\AbstractLogger
         return static::$instances[$target];
     }
 
-    public static function setLogger(LoggerInterface $logger, $target = 'general')
+    public static function setLogger(LoggerInterface $logger, $target = 'general'): void
     {
         static::$instances[$target] = $logger;
     }
 
-    public function log($level, $message, array $context = [])
+    public function log($level, $message, array $context = []): void
     {
         if (static::getDump()) {
             dump([
@@ -158,7 +153,10 @@ class Logger extends \Psr\Log\AbstractLogger
         }
     }
 
-    public static function buildBacktraceLines($frames = null)
+    /**
+     * @return string[]
+     */
+    public static function buildBacktraceLines($frames = null): array
     {
         if (!$frames) {
             $frames = debug_backtrace();
@@ -180,32 +178,33 @@ class Logger extends \Psr\Log\AbstractLogger
                     $frame['file'] = 'emergence:'.$fileNode->FullPath;
                 }
             }
-
             // ignore log-routing frames
-            if (
-                !empty($frame['file']) &&
-                (
-                    $frame['file'] == 'emergence:_parent/php-classes/Psr/Log/AbstractLogger.php' ||
-                    $frame['file'] == 'emergence:_parent/php-classes/Emergence/Logger.php'
-                ) ||
-                (empty($frame['file']) && !empty($frame['class']) && $frame['class'] == 'Psr\Log\AbstractLogger') ||
-                (!empty($frame['class']) && $frame['class'] == \Emergence\Logger::class && !empty($frame['function']) && $frame['function'] == '__callStatic')
-            ) {
+            if (!empty($frame['file']) &&
+            (
+                $frame['file'] == 'emergence:_parent/php-classes/Psr/Log/AbstractLogger.php' ||
+                $frame['file'] == 'emergence:_parent/php-classes/Emergence/Logger.php'
+            )) {
+                continue;
+            }
+            if (empty($frame['file']) && !empty($frame['class']) && $frame['class'] == \Psr\Log\AbstractLogger::class) {
+                continue;
+            }
+            if (!empty($frame['class']) && $frame['class'] == \Emergence\Logger::class && !empty($frame['function']) && $frame['function'] == '__callStatic') {
                 continue;
             }
 
             $lines[] =
-                 (!empty($frame['class']) ? $frame['class'] : '')
-                .(!empty($frame['type']) ? $frame['type'] : '')
-                .(!empty($frame['function']) ? $frame['function'] : '')
-                .(!empty($frame['args']) ? '('.implode(',', array_map(fn($arg) => is_string($arg) || is_numeric($arg) ? var_export($arg, true) : gettype($arg), $frame['args'])).')' : '')
-                .(!empty($frame['file']) ? " called at $frame[file]:$frame[line]" : '');
+                 (empty($frame['class']) ? '' : $frame['class'])
+                .(empty($frame['type']) ? '' : $frame['type'])
+                .(empty($frame['function']) ? '' : $frame['function'])
+                .(empty($frame['args']) ? '' : '('.implode(',', array_map(fn($arg): ?string => is_string($arg) || is_numeric($arg) ? var_export($arg, true) : gettype($arg), $frame['args'])).')')
+                .(empty($frame['file']) ? '' : " called at $frame[file]:$frame[line]");
         }
 
         return $lines;
     }
 
-    public static function interpolate($message, array $context = [])
+    public static function interpolate($message, array $context = []): string
     {
         $replace = [];
         foreach ($context as $key => $value) {
@@ -226,18 +225,19 @@ class Logger extends \Psr\Log\AbstractLogger
                     $formatted[] = "{$key} = {$value}";
                 }
             }
-
             return '[ '.implode(', ', $formatted).' ]';
-        } elseif (is_bool($value)) {
+        }
+        if (is_bool($value)) {
             // return $value ? '✔' : '✘';
             return $value ? 'T' : 'F';
-        } elseif ($value === null) {
+        }
+        if ($value === null) {
             return '∅';
-        } elseif ($value instanceof KeyedDiff) {
+        }
+        if ($value instanceof KeyedDiff) {
             $newValues = $value->getNewValues();
             $oldValues = $value->getOldValues();
             $diff = [];
-
             foreach ($newValues as $key => $newValue) {
                 $diff[$key] = sprintf(
                     '%s → %s',
@@ -247,7 +247,6 @@ class Logger extends \Psr\Log\AbstractLogger
                     static::toLogString($newValue)
                 );
             }
-
             return static::toLogString($diff);
         }
 
@@ -255,10 +254,10 @@ class Logger extends \Psr\Log\AbstractLogger
     }
 
     // permit log messages for the default logger instance to be called statically by prefixing them with general_
-    public static function __callStatic($method, $arguments)
+    public static function __callStatic(string $method, array $arguments)
     {
         if (
-            preg_match('/^([^_]+)_(.*)$/', (string) $method, $matches)
+            preg_match('/^([^_]+)_(.*)$/', $method, $matches)
             && ($logger = static::getLogger($matches[1]))
             && method_exists($logger, $matches[2])
         ) {

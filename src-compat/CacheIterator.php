@@ -3,7 +3,7 @@
 if (class_exists('APCUIterator', false)) {
     class CacheIterator extends APCUIterator
     {
-        public static function createFromPattern($pattern)
+        public static function createFromPattern($pattern): static
         {
             return new static($pattern);
         }
@@ -11,7 +11,7 @@ if (class_exists('APCUIterator', false)) {
 } else {
     class CacheIterator extends APCIterator
     {
-        public static function createFromPattern($pattern)
+        public static function createFromPattern($pattern): static
         {
             return extension_loaded('apcu') && version_compare(phpversion('apcu'), '4.0.2') < 0 ? new static($pattern) : new static('user', $pattern);
         }

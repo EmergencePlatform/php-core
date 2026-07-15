@@ -34,10 +34,11 @@ class Emergence
                 ,'timeout' => 500
             ]);
         }
-
         if (empty(Site::$pathStack[0])) {
             return static::handleTreeRequest();
-        } elseif ($node = Site::resolvePath(Site::$pathStack)) {
+        }
+
+        if ($node = Site::resolvePath(Site::$pathStack)) {
             if (method_exists($node, 'outputAsResponse')) {
                 $node->outputAsResponse(true);
             } elseif (is_a($node, 'SiteCollection')) {
@@ -45,13 +46,14 @@ class Emergence
             } else {
                 Site::respondBadRequest();
             }
-        } else {
+        }
+        else {
             header('HTTP/1.0 404 Not Found');
             die('File not found');
         }
     }
 
-    public static function handleTreeRequest($rootNode = null)
+    public static function handleTreeRequest($rootNode = null): void
     {
         set_time_limit(1800);
         $rootPath = $rootNode ? $rootNode->getFullPath(null, false) : null;
@@ -99,18 +101,17 @@ class Emergence
         exit();
     }
 
-    public static function buildUrl($path = [], $params = [])
+    public static function buildUrl($path = [], $params = []): string
     {
         $params['accessKey'] = Site::getConfig('parent_key');
 
         $url  = 'http://'.Site::getConfig('parent_hostname').'/emergence';
         $url .= '/'.implode('/', $path);
-        $url .= '?'.http_build_query($params);
 
-        return $url;
+        return $url . ('?' . http_build_query($params));
     }
 
-    public static function executeRequest($url)
+    public static function executeRequest($url): array
     {
         static $ch = null;
 
@@ -196,14 +197,14 @@ class Emergence
 
             // read headers until a blank line is found
             while ($header = trim(fgetss($remoteResponse['resource']))) {
-                if (!$header) {
+                if ($header === '0') {
                     break;
                 }
                 [$key, $value] = preg_split('/:\s*/', $header, 2);
                 $key = strtolower($key);
 
                 // if etag found, use it to skip write if existing file matches
-                if ($key == 'etag' && $fileNode && $fileNode->SHA1 == $value) {
+                if ($key === 'etag' && $fileNode && $fileNode->SHA1 == $value) {
                     fclose($remoteResponse['resource']);
                     return $fileNode;
                 }
@@ -231,7 +232,7 @@ class Emergence
         }
 
         while ($header = trim(fgetss($remoteResponse['resource']))) {
-            if (!$header) {
+            if ($header === '0') {
                 break;
             }
         }

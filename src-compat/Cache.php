@@ -8,86 +8,85 @@ class Cache
     {
         if (function_exists('apcu_fetch')) {
             return apcu_fetch($key);
-        } elseif (function_exists('apc_fetch')) {
-            return apc_fetch($key);
-        } elseif (array_key_exists($key, static::$fallbackCache)) {
-            return static::$fallbackCache[$key];
-        } else {
-            return false;
         }
+        if (function_exists('apc_fetch')) {
+            return apc_fetch($key);
+        }
+        if (array_key_exists($key, static::$fallbackCache)) {
+            return static::$fallbackCache[$key];
+        }
+        return false;
     }
 
     public static function rawStore($key, $value, $ttl = 0)
     {
         if (function_exists('apc_store')) {
-            return apc_store($key, $value, $ttl);;
-        } elseif (function_exists('apcu_store')) {
-            return apcu_store($key, $value, $ttl);
-        } else {
-            static::$fallbackCache[$key] = $value;
-            return true;
+            return apc_store($key, $value, $ttl);
         }
+        if (function_exists('apcu_store')) {
+            return apcu_store($key, $value, $ttl);
+        }
+        static::$fallbackCache[$key] = $value;
+        return true;
     }
 
     public static function rawDelete($key)
     {
         if (function_exists('apcu_delete')) {
             return apcu_delete($key);
-        } elseif (function_exists('apc_delete')) {
-            return apc_delete($key);
-        } else {
-            unset(static::$fallbackCache[$key]);
-            return true;
         }
+        if (function_exists('apc_delete')) {
+            return apc_delete($key);
+        }
+        unset(static::$fallbackCache[$key]);
+        return true;
     }
 
-    public static function rawExists($key)
+    public static function rawExists($key): bool|array
     {
         if (function_exists('apcu_exists')) {
             return apcu_exists($key);
-        } elseif (function_exists('apc_exists')) {
-            return apc_exists($key);
-        } else {
-            return array_key_exists($key, static::$fallbackCache);
         }
+        if (function_exists('apc_exists')) {
+            return apc_exists($key);
+        }
+        return array_key_exists($key, static::$fallbackCache);
     }
 
     public static function rawIncrease($key, $step = 1)
     {
         if (function_exists('apcu_inc')) {
             return apcu_inc($key);
-        } elseif (function_exists('apc_inc')) {
-            return apc_inc($key, $value, $ttl);
-        } else {
-            if (!array_key_exists($key, static::$fallbackCache)) {
-                static::$fallbackCache[$key] = 0;
-            }
-
-            return ++static::$fallbackCache[$key];
         }
+        if (function_exists('apc_inc')) {
+            return apc_inc($key, $value, $ttl);
+        }
+        if (!array_key_exists($key, static::$fallbackCache)) {
+            static::$fallbackCache[$key] = 0;
+        }
+        return ++static::$fallbackCache[$key];
     }
 
     public static function rawDecrease($key, $step = 1)
     {
         if (function_exists('apcu_dec')) {
             return apcu_dec($key);
-        } elseif (function_exists('apc_dec')) {
-            return apc_dec($key, $value, $ttl);
-        } else {
-            if (!array_key_exists($key, static::$fallbackCache)) {
-                static::$fallbackCache[$key] = 0;
-            }
-
-            return --static::$fallbackCache[$key];
         }
+        if (function_exists('apc_dec')) {
+            return apc_dec($key, $value, $ttl);
+        }
+        if (!array_key_exists($key, static::$fallbackCache)) {
+            static::$fallbackCache[$key] = 0;
+        }
+        return --static::$fallbackCache[$key];
     }
 
-    public static function getKeyPrefix()
+    public static function getKeyPrefix(): string
     {
         return Site::getConfig('handle').':';
     }
 
-    public static function localizeKey($key)
+    public static function localizeKey($key): string
     {
         return static::getKeyPrefix().$key;
     }
@@ -140,7 +139,7 @@ class Cache
         return CacheIterator::createFromPattern($pattern);
     }
 
-    public static function deleteByPattern($pattern)
+    public static function deleteByPattern($pattern): int
     {
         $count = 0;
         foreach (static::getIterator($pattern) AS $cacheEntry) {
@@ -151,7 +150,7 @@ class Cache
         return $count;
     }
 
-    public static function invalidateScript($path)
+    public static function invalidateScript($path): void
     {
         if (extension_loaded('Zend OPcache')) {
             opcache_invalidate($path);

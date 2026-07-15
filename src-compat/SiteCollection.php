@@ -11,11 +11,7 @@ class SiteCollection
 
     public function __construct(protected $_handle, $record = null)
     {
-        if ($record) {
-            $this->_record = $record;
-        } else {
-            $this->_record = static::getRecordByHandle($this->_handle);
-        }
+        $this->_record = $record ?: static::getRecordByHandle($this->_handle);
 
         if (!$this->_record) {
             if (static::$autoCreate) {
@@ -26,10 +22,11 @@ class SiteCollection
         }
     }
 
-    public function __get($name)
+    public function __get(string $name): mixed
     {
         switch ($name) {
             case 'ID':
+            case 'FullPath':
                 return $this->_record['path'];
             case 'Class':
                 return self::class;
@@ -46,17 +43,15 @@ class SiteCollection
                     $this->_parent = static::getByID($this->ParentID);
                 }
                 return $this->_parent;
-            case 'FullPath':
-                return $this->_record['path'];
         }
     }
 
-    public function __isset($name)
+    public function __isset(string $name)
     {
         return $this->__get($name) !== null;
     }
 
-    public static function getCacheKey($handle, $parentID = null, $remote = false)
+    public static function getCacheKey($handle, $parentID = null, $remote = false): string
     {
         // build cache key and query conditions
         $cacheKey = 'efs:col';
@@ -71,7 +66,7 @@ class SiteCollection
         return $cacheKey.$handle;
     }
 
-    public static function getByID($collectionID)
+    public static function getByID($collectionID): ?self
     {
         $fs = Site::getFilesystem();
 
@@ -130,7 +125,10 @@ class SiteCollection
         return $record;
     }
 
-    public function getCollectionsTree()
+    /**
+     * @return static[]
+     */
+    public function getCollectionsTree(): array
     {
         DB::nonQuery('LOCK TABLES '.static::$tableName.' READ');
 
@@ -163,14 +161,17 @@ class SiteCollection
         return SiteFile::getTree($this);
     }
 
-    public static function getByHandle($handle, $parentID = null, $remote = false, $includeDeleted = false)
+    public static function getByHandle($handle, $parentID = null, $remote = false, $includeDeleted = false): ?self
     {
         $record = static::getRecordByHandle($handle, $parentID, $remote, $includeDeleted);
 
         return $record ? new static($record['Handle'], $record) : null;
     }
 
-    public function getChildren()
+    /**
+     * @return object[]
+     */
+    public function getChildren(): array
     {
         $fileClass = static::$fileClass;
         $children = [];
@@ -225,7 +226,7 @@ class SiteCollection
         return false;
     }
 
-    public function childExists($name)
+    public function childExists($name): bool
     {
         return (boolean)$this->getChild($name);
     }
@@ -302,7 +303,7 @@ class SiteCollection
         return static::createRecord($handle, $this);
     }
 
-    public function getFullPath($root = null, $prependParent = true)
+    public function getFullPath($root = null, $prependParent = true): array
     {
         if ($root) {
             throw new Exception('non-null $root not supported');
@@ -311,7 +312,10 @@ class SiteCollection
         return explode('/', $this->_record['path']);
     }
 
-    public static function getAllRootCollections($remote = false)
+    /**
+     * @return static[]
+     */
+    public static function getAllRootCollections($remote = false): array
     {
         if (!is_bool($remote)) {
             throw new Exception('SiteID must be converted to (bool)$remote');
@@ -325,10 +329,12 @@ class SiteCollection
         $collections = [];
 
         foreach (Site::getFilesystem()->listContents() as $entry) {
-            if ($entry['type'] != 'dir' || $entry['basename'] == '.git') {
+            if ($entry['type'] != 'dir') {
                 continue;
             }
-
+            if ($entry['basename'] == '.git') {
+                continue;
+            }
             $collections[] = new static($entry['basename'], $entry);
         }
 
@@ -433,7 +439,7 @@ class SiteCollection
                 static::$tableName
                 ,$parentCollection ? $parentCollection->Site : ($remote ? 'Remote' : 'Local')
                 ,DB::escape($handle)
-                ,!empty($GLOBALS['Session']) ? $GLOBALS['Session']->PersonID : null
+                ,empty($GLOBALS['Session']) ? null : $GLOBALS['Session']->PersonID
                 ,$parentCollection ? $parentCollection->ID : 'NULL'
                 ,$left
                 ,$right
@@ -451,7 +457,7 @@ class SiteCollection
         return $newID;
     }
 
-    public function setName($handle)
+    public function setName($handle): void
     {
         Cache::delete(static::getCacheKey($this->Handle, $this->ParentID, $this->Site == 'Remote'));
         Cache::delete(static::getCacheKey($handle, $this->ParentID, $this->Site == 'Remote'));
@@ -464,7 +470,7 @@ class SiteCollection
         ]);
     }
 
-    public function setStatus($status)
+    public function setStatus($status): void
     {
         Cache::delete(static::getCacheKey($this->Handle, $this->ParentID, $this->Site == 'Remote'));
         Cache::delete('efs:col:'.$this->ID);
@@ -476,12 +482,12 @@ class SiteCollection
         ]);
     }
 
-    public function getLastModified()
+    public function getLastModified(): int
     {
         return time();
     }
 
-    public function delete()
+    public function delete(): void
     {
         // FIXME: check if status/handle unique combo already exists
 
@@ -508,7 +514,7 @@ class SiteCollection
         static::clearCacheTree($this->_record);
     }
 
-    public function clearCacheTree($record)
+    public function clearCacheTree($record): void
     {
         $key = static::getCacheKey($record['Handle'], $record['ParentID'], $record['Site'] == 'Remote');
 

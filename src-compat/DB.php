@@ -29,7 +29,7 @@ class DB
         return self::getMysqli()->affected_rows;
     }
 
-    public static function foundRows()
+    public static function foundRows(): int
     {
         // table not found
         if (self::getMysqli()->sqlstate == '42S02') {
@@ -44,7 +44,7 @@ class DB
         return self::getMysqli()->insert_id;
     }
 
-    public static function nonQuery($query, $parameters = null)
+    public static function nonQuery($query, $parameters = null): void
     {
         $query = self::preprocessQuery($query, $parameters);
 
@@ -65,7 +65,7 @@ class DB
         self::finishQueryLog($queryLog);
     }
 
-    public static function multiQuery($query, $parameters = null)
+    public static function multiQuery($query, $parameters = null): void
     {
         $query = self::preprocessQuery($query, $parameters);
 
@@ -113,7 +113,10 @@ class DB
         return $result;
     }
 
-    public static function table($tableKey, $query, $parameters = null, $nullKey = '')
+    /**
+     * @return mixed[]
+     */
+    public static function table($tableKey, $query, $parameters = null, $nullKey = ''): array
     {
         // execute query
         $result = self::query($query, $parameters);
@@ -129,7 +132,10 @@ class DB
         return $records;
     }
 
-    public static function arrayTable($tableKey, $query, $parameters = null)
+    /**
+     * @return \non-empty-list<mixed>[]
+     */
+    public static function arrayTable($tableKey, $query, $parameters = null): array
     {
         // execute query
         $result = self::query($query, $parameters);
@@ -149,7 +155,10 @@ class DB
         return $records;
     }
 
-    public static function valuesTable($tableKey, $valueKey, $query, $parameters = null)
+    /**
+     * @return mixed[]
+     */
+    public static function valuesTable($tableKey, $valueKey, $query, $parameters = null): array
     {
         // execute query
         $result = self::query($query, $parameters);
@@ -165,7 +174,10 @@ class DB
         return $records;
     }
 
-    public static function allRecordsWithInstantiation($query, $classMapping, $parameters = null)
+    /**
+     * @return mixed[]
+     */
+    public static function allRecordsWithInstantiation($query, $classMapping, $parameters = null): array
     {
         // execute query
         $result = self::query($query, $parameters);
@@ -185,7 +197,10 @@ class DB
         return $records;
     }
 
-    public static function allInstances($className, $query, $parameters = null)
+    /**
+     * @return object[]
+     */
+    public static function allInstances($className, $query, $parameters = null): array
     {
         // execute query
         try {
@@ -205,7 +220,10 @@ class DB
         return $records;
     }
 
-    public static function allRecords($query, $parameters = null)
+    /**
+     * @return mixed[]
+     */
+    public static function allRecords($query, $parameters = null): array
     {
         // MICS::dump(array('query' => $query, 'params' => $parameters), 'allRecords');
 
@@ -227,7 +245,10 @@ class DB
         return $records;
     }
 
-    public static function allValues($valueKey, $query, $parameters = null)
+    /**
+     * @return mixed[]
+     */
+    public static function allValues($valueKey, $query, $parameters = null): array
     {
         // execute query
         try {
@@ -247,7 +268,7 @@ class DB
         return $records;
     }
 
-    public static function clearCachedRecord($cacheKey)
+    public static function clearCachedRecord($cacheKey): void
     {
         unset(self::$_record_cache[$cacheKey]);
     }
@@ -321,27 +342,26 @@ class DB
         if ($record) {
             // return record
             return array_shift($record);
-        } else {
-            return false;
         }
+        return false;
     }
 
-    public static function dump($query, $parameters = null)
+    public static function dump($query, $parameters = null): void
     {
         Debug::dump($query, false);
 
-        if (count($parameters)) {
+        if (count($parameters) > 0) {
             Debug::dump($parameters, false);
             Debug::dump(self::preprocessQuery($query, $parameters), 'processed');
         }
     }
 
-    public static function makeOrderString($order = [])
+    public static function makeOrderString($order = []): string
     {
         $s = '';
 
         foreach ($order AS $field => $dir) {
-            if ($s!='') {
+            if ($s !== '') {
                 $s .= ',';
             }
 
@@ -397,16 +417,17 @@ class DB
         ];
     }
 
-    protected static function extendQueryLog(&$queryLog, $key, $value)
+    protected static function extendQueryLog(&$queryLog, $key, $value): ?bool
     {
         if ($queryLog == false) {
             return false;
         }
 
         $queryLog[$key] = $value;
+        return null;
     }
 
-    protected static function finishQueryLog(&$queryLog, $result = null)
+    protected static function finishQueryLog(&$queryLog, $result = null): ?bool
     {
         if ($queryLog == false || static::$suspendCount > 0) {
             return false;
@@ -445,6 +466,7 @@ class DB
 
         // append to static log
         Debug::log($queryLog);
+        return null;
     }
 
     public static function getMysqli()
@@ -468,12 +490,8 @@ class DB
             $mysqli = @new mysqli($config['host'], $config['username'], $config['password'], null, $config['port'], $config['socket']);
 
             // handle connection errors
-            if ($mysqli->connect_errno) {
-                switch ($mysqli->connect_errno) {
-                    default:
-                        throw new Exception('Failed to connect to database: '.$mysqli->connect_error, $mysqli->connect_errno);
-                }
-                exit(1);
+            if ($mysqli->connect_errno !== 0) {
+                throw new Exception('Failed to connect to database: '.$mysqli->connect_error, $mysqli->connect_errno);
             }
 
             // select database, attempting to create if needed
@@ -498,7 +516,7 @@ class DB
         return self::$_mysqli;
     }
 
-    protected static function handleError($query = '', $queryLog = false)
+    protected static function handleError(string $query = '', $queryLog = false)
     {
         // save queryLog
         if ($queryLog) {
@@ -507,23 +525,22 @@ class DB
         }
 
         $message = sprintf("Query: %s\nReported: %s", $query, static::$_mysqli->error);
-
         // get error message
         if (static::$_mysqli->errno == 1062) {
             throw new DuplicateKeyException($message, static::$_mysqli->errno);
-        } elseif (static::$_mysqli->errno == 1146) {
-            throw new TableNotFoundException($message, static::$_mysqli->errno);
-        } else {
-            throw new QueryException($message, static::$_mysqli->errno);
         }
+
+        // get error message
+        if (static::$_mysqli->errno == 1146) {
+            throw new TableNotFoundException($message, static::$_mysqli->errno);
+        }
+        throw new QueryException($message, static::$_mysqli->errno);
     }
 
     /**
      * Sets timezone for connection to match current PHP default
-     *
-     * @return void
      */
-    public static function syncTimezone()
+    public static function syncTimezone(): void
     {
         if (!isset(self::$_mysqli)) {
             return;
@@ -549,12 +566,12 @@ class DB
     // API to suspend/resume query logging
     protected static $suspendCount = 0;
 
-    public static function suspendQueryLogging()
+    public static function suspendQueryLogging(): void
     {
         static::$suspendCount++;
     }
 
-    public static function resumeQueryLogging()
+    public static function resumeQueryLogging(): void
     {
         static::$suspendCount--;
 
