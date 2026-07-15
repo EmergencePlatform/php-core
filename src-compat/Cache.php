@@ -142,7 +142,7 @@ class Cache
     public static function deleteByPattern($pattern): int
     {
         $count = 0;
-        foreach (static::getIterator($pattern) AS $cacheEntry) {
+        foreach (static::getIterator($pattern) as $cacheEntry) {
             static::rawDelete($cacheEntry['key']);
             $count++;
         }

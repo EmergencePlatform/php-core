@@ -1,4 +1,5 @@
 <?php
+
 class Emergence_Stream_Wrapper
 {
     public $fp;
@@ -13,13 +14,13 @@ class Emergence_Stream_Wrapper
 
     public function __contruct(): void
     {
-        $this->fp =0;
-        $this->dh =0;
+        $this->fp = 0;
+        $this->dh = 0;
     }
 
     public static function getByEmergenceVFS($path)
     {
-        $vfsPath = static::get_virtual_path(str_replace('vfs://','',$path));
+        $vfsPath = static::get_virtual_path(str_replace('vfs://', '', $path));
 
         $templateNode = false;
 
@@ -51,7 +52,7 @@ class Emergence_Stream_Wrapper
         return $templateNode;
     }
 
-    public function stream_open($path ,  $mode ,  $options ,  &$opened_path): bool
+    public function stream_open($path, $mode, $options, &$opened_path): bool
     {
         $this->position = 0;
         $this->fp = false;
@@ -69,7 +70,7 @@ class Emergence_Stream_Wrapper
 
     public function stream_read($bytes): string|false
     {
-        return fread($this->fp,$bytes);
+        return fread($this->fp, $bytes);
     }
 
     public function stream_stat(): array|false

@@ -16,7 +16,7 @@ if (is_readable($hostmapPath)) {
 } else {
     $hostmap = [];
 
-    foreach (glob('/emergence/sites/*', GLOB_ONLYDIR) AS $sitePath) {
+    foreach (glob('/emergence/sites/*', GLOB_ONLYDIR) as $sitePath) {
         $configPath = "$sitePath/site.json";
         if (!is_readable($configPath)) {
             continue;
@@ -30,7 +30,7 @@ if (is_readable($hostmapPath)) {
 
         $hostnames = array_unique(array_merge([$config['primary_hostname']], $config['hostnames']));
 
-        foreach ($hostnames AS $hostname) {
+        foreach ($hostnames as $hostname) {
             $hostmap['/^'.str_replace('\\*', '.*', preg_quote((string) $hostname)).'$/i'] = basename($sitePath);
         }
     }
@@ -42,7 +42,7 @@ if (is_readable($hostmapPath)) {
 // map hostname to handle
 // TODO: move this to a static Site method getHandleFromHostname, have initialize use it if hostname isn't provided (and swap initialize param order)
 $siteHandle = null;
-foreach ($hostmap AS $pattern => $patternHandle) {
+foreach ($hostmap as $pattern => $patternHandle) {
     if (preg_match($pattern, (string) $hostname)) {
         $siteHandle = $patternHandle;
         break;

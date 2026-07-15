@@ -14,7 +14,7 @@ class DB
     public static function escape($string)
     {
         if (is_array($string)) {
-            foreach ($string AS &$sub) {
+            foreach ($string as &$sub) {
                 $sub = self::getMysqli()->real_escape_string($sub);
             }
         } else {
@@ -184,7 +184,7 @@ class DB
 
         $records = [];
         while ($record = $result->fetch_assoc()) {
-            foreach ($classMapping AS $key => $class) {
+            foreach ($classMapping as $key => $class) {
                 $record[$key] = new $class($record[$key]);
             }
 
@@ -360,7 +360,7 @@ class DB
     {
         $s = '';
 
-        foreach ($order AS $field => $dir) {
+        foreach ($order as $field => $dir) {
             if ($s !== '') {
                 $s .= ',';
             }
@@ -413,7 +413,7 @@ class DB
         // create a new query log structure
         return [
             'query' => $query
-            ,'time_start' => sprintf('%f',microtime(true))
+            ,'time_start' => sprintf('%f', microtime(true))
         ];
     }
 
@@ -434,7 +434,7 @@ class DB
         }
 
         // save finish time and number of affected rows
-        $queryLog['time_finish'] = sprintf('%f',microtime(true));
+        $queryLog['time_finish'] = sprintf('%f', microtime(true));
         $queryLog['time_duration_ms'] = ($queryLog['time_finish'] - $queryLog['time_start']) * 1000;
         $queryLog['affected_rows'] = self::getMysqli()->affected_rows;
 

@@ -25,7 +25,7 @@ class EventBus
             $_EVENT['CURRENT_HANDLER_ID'] = $fileSystemPath;
 
             // create a closure for executing hanlder so that $_EVENT is the only variable pre-defined in its scope
-            $handler = function() use (&$_EVENT) {
+            $handler = function () use (&$_EVENT) {
                 return include($_EVENT['CURRENT_HANDLER_ID']);
             };
 
@@ -69,7 +69,7 @@ class EventBus
             $eventPath = $contextPath.'/'.$key;
             $handlerNodes = Emergence_FS::getAggregateChildren($eventPath);
             ksort($handlerNodes);
-            foreach ($handlerNodes AS $filename => $node) {
+            foreach ($handlerNodes as $filename => $node) {
                 if ($node->Type == 'application/php') {
                     $handlers[$eventPath.'/'.$filename] = $node->RealPath;
                 }
@@ -78,7 +78,7 @@ class EventBus
             $eventPath = $contextPath.'/~';
             $handlerNodes = Emergence_FS::getAggregateChildren($eventPath);
             ksort($handlerNodes);
-            foreach ($handlerNodes AS $filename => $node) {
+            foreach ($handlerNodes as $filename => $node) {
                 if ($node->Type == 'application/php') {
                     $handlers[$eventPath.'/'.$filename] = $node->RealPath;
                 }

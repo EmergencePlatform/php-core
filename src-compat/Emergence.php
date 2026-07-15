@@ -46,8 +46,7 @@ class Emergence
             } else {
                 Site::respondBadRequest();
             }
-        }
-        else {
+        } else {
             header('HTTP/1.0 404 Not Found');
             die('File not found');
         }
@@ -67,7 +66,7 @@ class Emergence
             $excludedCollections = [];
             $excludedFiles = [];
 
-            foreach (Emergence_FS::getNodesFromPattern($excludes) AS $node) {
+            foreach (Emergence_FS::getNodesFromPattern($excludes) as $node) {
                 if ($node->Class == 'SiteCollection') {
                     $excludedCollections[] = $node->ID;
                 } else {

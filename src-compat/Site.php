@@ -53,7 +53,7 @@ class Site
             $debugHandler = new \Whoops\Handler\PrettyPageHandler();
             $debugHandler->addDataTableCallback(
                 'Routing',
-                fn(): array => [
+                fn (): array => [
                     'requestPath' => implode('/', Site::$requestPath),
                     'resolvedPath' => implode('/', Site::$resolvedPath),
                     'resolvedNode' => Site::$resolvedNode ? Site::$resolvedNode->FullPath : null,
@@ -495,53 +495,53 @@ class Site
 
         // TODO: re-enable cache
         // if (!$configFiles = Cache::fetch($cacheKey)) {
-            $fs = static::getFilesystem();
-            $configFiles = [];
+        $fs = static::getFilesystem();
+        $configFiles = [];
 
 
-            // compute file path for given class name
-            if ($lastNsPos = strrpos((string) $className, '\\')) {
-                $namespace = substr((string) $className, 0, $lastNsPos);
-                $className = substr((string) $className, $lastNsPos + 1);
-                $path  = str_replace('\\', DIRECTORY_SEPARATOR, $namespace).DIRECTORY_SEPARATOR;
-            } else {
-                $path = '';
+        // compute file path for given class name
+        if ($lastNsPos = strrpos((string) $className, '\\')) {
+            $namespace = substr((string) $className, 0, $lastNsPos);
+            $className = substr((string) $className, $lastNsPos + 1);
+            $path  = str_replace('\\', DIRECTORY_SEPARATOR, $namespace).DIRECTORY_SEPARATOR;
+        } else {
+            $path = '';
+        }
+
+        $path .= str_replace('_', DIRECTORY_SEPARATOR, $className);
+
+
+        // look for composite config files first
+        $collectionContents = $fs->listContents("php-config/{$path}.config.d");
+
+        foreach ($collectionContents as $child) {
+            if ($child['type'] == 'file' && $child['extension'] == 'php') {
+                $configFiles[] = static::$rootPath.'/site/'.$child['path'];
             }
+        }
 
-            $path .= str_replace('_', DIRECTORY_SEPARATOR, $className);
-
-
-            // look for composite config files first
-            $collectionContents = $fs->listContents("php-config/{$path}.config.d");
-
-            foreach ($collectionContents as $child) {
-                if ($child['type'] == 'file' && $child['extension'] == 'php') {
-                    $configFiles[] = static::$rootPath.'/site/'.$child['path'];
-                }
-            }
-
-            sort($configFiles);
+        sort($configFiles);
 
 
-            // look for primary config file
-            if (
-                (
-                    ($legacyPath = "php-config/{$path}.config.php")
-                    && $fs->has($legacyPath)
-                )
-                || (
-                    // Fall back on looking for Old_School_Underscore_Namespacing in root
-                    empty($namespace)
-                    && $path != $className
-                    && ($legacyPath = "php-config/$className.config.php")
-                    && $fs->has($legacyPath)
-                )
-            ) {
-                $configFiles[] = static::$rootPath.'/site/'.$legacyPath;
-            }
+        // look for primary config file
+        if (
+            (
+                ($legacyPath = "php-config/{$path}.config.php")
+                && $fs->has($legacyPath)
+            )
+            || (
+                // Fall back on looking for Old_School_Underscore_Namespacing in root
+                empty($namespace)
+                && $path != $className
+                && ($legacyPath = "php-config/$className.config.php")
+                && $fs->has($legacyPath)
+            )
+        ) {
+            $configFiles[] = static::$rootPath.'/site/'.$legacyPath;
+        }
 
 
-            Cache::store($cacheKey, $configFiles);
+        Cache::store($cacheKey, $configFiles);
         // }
 
 
@@ -759,7 +759,7 @@ class Site
         static $whoops;
 
         if (!$whoops) {
-            $whoops = new \Whoops\Run;
+            $whoops = new \Whoops\Run();
         }
 
         return $whoops;

@@ -132,8 +132,8 @@ class SiteFile
 
         if (false === ($record = Cache::fetch($cacheKey))) {
             $record = DB::oneRecord(
-                'SELECT * FROM `%s` WHERE CollectionID = %u AND Handle = "%s" ORDER BY ID DESC LIMIT 1'
-                ,[
+                'SELECT * FROM `%s` WHERE CollectionID = %u AND Handle = "%s" ORDER BY ID DESC LIMIT 1',
+                [
                     static::$tableName
                     ,$collectionID
                     ,DB::escape($handle)
@@ -162,8 +162,8 @@ class SiteFile
         ]);
 
         $fileResults = DB::query(
-            'SELECT f2.* FROM (SELECT MAX(f1.ID) AS ID FROM `%1$s` f1 WHERE CollectionID IN (SELECT collections.ID FROM `%2$s` collections WHERE PosLeft BETWEEN %3$u AND %4$u) AND Status != "Phantom" GROUP BY f1.Handle) AS lastestFiles LEFT JOIN `%1$s` f2 ON (f2.ID = lastestFiles.ID) WHERE f2.Status != "Deleted"'
-            ,[
+            'SELECT f2.* FROM (SELECT MAX(f1.ID) AS ID FROM `%1$s` f1 WHERE CollectionID IN (SELECT collections.ID FROM `%2$s` collections WHERE PosLeft BETWEEN %3$u AND %4$u) AND Status != "Phantom" GROUP BY f1.Handle) AS lastestFiles LEFT JOIN `%1$s` f2 ON (f2.ID = lastestFiles.ID) WHERE f2.Status != "Deleted"',
+            [
                 static::$tableName
                 ,SiteCollection::$tableName
                 ,$positions['PosLeft']
@@ -187,8 +187,8 @@ class SiteFile
     public function getRevisions(): array
     {
         $result = DB::query(
-            'SELECT * FROM `%s` WHERE CollectionID = %u AND Handle = "%s" ORDER BY ID DESC'
-            ,[
+            'SELECT * FROM `%s` WHERE CollectionID = %u AND Handle = "%s" ORDER BY ID DESC',
+            [
                 static::$tableName
                 ,$this->CollectionID
                 ,DB::escape($this->Handle)
@@ -390,8 +390,8 @@ class SiteFile
         } else {
             // clone existing record
             DB::nonQuery(
-                'INSERT INTO `%s` SET CollectionID = %u, Handle = "%s", Status = "%s", SHA1 = "%s", Size = %u, Type = "%s", Timestamp = "%s", AuthorID = %s, AncestorID = %u'
-                ,[
+                'INSERT INTO `%s` SET CollectionID = %u, Handle = "%s", Status = "%s", SHA1 = "%s", Size = %u, Type = "%s", Timestamp = "%s", AuthorID = %s, AncestorID = %u',
+                [
                     static::$tableName
                     ,$this->CollectionID
                     ,DB::escape($handle)
@@ -484,8 +484,8 @@ class SiteFile
         ]);
 
         DB::nonQuery(
-            'INSERT INTO `%1$s` (CollectionID, Handle, Status, Timestamp, AuthorID, AncestorID) SELECT f2.CollectionID, f2.Handle, "Deleted", "%5$s", %6$s, f2.ID FROM (SELECT MAX(f1.ID) AS ID FROM `%1$s` f1 WHERE CollectionID IN (SELECT collections.ID FROM `%2$s` collections WHERE PosLeft BETWEEN %3$u AND %4$u) AND Status != "Phantom" GROUP BY f1.Handle) AS lastestFiles LEFT JOIN `%1$s` f2 ON (f2.ID = lastestFiles.ID) WHERE f2.Status != "Deleted"'
-            ,[
+            'INSERT INTO `%1$s` (CollectionID, Handle, Status, Timestamp, AuthorID, AncestorID) SELECT f2.CollectionID, f2.Handle, "Deleted", "%5$s", %6$s, f2.ID FROM (SELECT MAX(f1.ID) AS ID FROM `%1$s` f1 WHERE CollectionID IN (SELECT collections.ID FROM `%2$s` collections WHERE PosLeft BETWEEN %3$u AND %4$u) AND Status != "Phantom" GROUP BY f1.Handle) AS lastestFiles LEFT JOIN `%1$s` f2 ON (f2.ID = lastestFiles.ID) WHERE f2.Status != "Deleted"',
+            [
                 static::$tableName
                 ,SiteCollection::$tableName
                 ,$positions['PosLeft']
@@ -512,7 +512,7 @@ class SiteFile
                 $headers = static::$additionalHeaders[$headers];
             }
 
-            foreach ($headers AS $header) {
+            foreach ($headers as $header) {
                 header($header);
             }
         }
@@ -520,9 +520,9 @@ class SiteFile
         // use SHA1 for ETag and manifest-based caching
         header('ETag: '.$this->SHA1);
         if (!empty($_GET['_sha1']) && $_GET['_sha1'] == $this->SHA1) {
-            $expires = 60*60*24*365;
+            $expires = 60 * 60 * 24 * 365;
             header('Cache-Control: public, max-age='.$expires);
-            header('Expires: '.gmdate('D, d M Y H:i:s \G\M\T', time()+$expires));
+            header('Expires: '.gmdate('D, d M Y H:i:s \G\M\T', time() + $expires));
             header('Pragma: public');
         }
         // send 304 and exit if current version matches HTTP_IF_* check

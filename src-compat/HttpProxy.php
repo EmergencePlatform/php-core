@@ -72,7 +72,7 @@ class HttpProxy
         }
 
         // build headers
-        foreach ($options['forwardHeaders'] AS $header) {
+        foreach ($options['forwardHeaders'] as $header) {
             $headerKey = 'HTTP_'.str_replace('-', '_', strtoupper((string) $header));
 
             if (!empty($_SERVER[$headerKey])) {
@@ -120,7 +120,7 @@ class HttpProxy
                     $responseHeaders[$headerKey] = trim($headerValue);
                 }
 
-                foreach ($options['passthruHeaders'] AS $pattern) {
+                foreach ($options['passthruHeaders'] as $pattern) {
                     if (preg_match($pattern, (string) $header)) {
                         // apply header transformation
                         if (!empty($options['headerTransformer'])) {
@@ -160,7 +160,7 @@ class HttpProxy
             if (is_string($options['cookies'])) {
                 $cookieStr = $options['cookies'];
             } else {
-                $cookieStr = implode('; ', array_map(fn($key, $value): string => $key.'='.urlencode((string) $value), array_keys($options['cookies']), $options['cookies']));
+                $cookieStr = implode('; ', array_map(fn ($key, $value): string => $key.'='.urlencode((string) $value), array_keys($options['cookies']), $options['cookies']));
             }
 
             curl_setopt($ch, CURLOPT_COOKIE, $cookieStr);

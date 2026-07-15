@@ -92,6 +92,6 @@ class Debug
             static::$_traceHandle = fopen($filePath.$fileName, 'w');
         }
 
-        fwrite(static::$_traceHandle, round(microtime(true)*1000)."\t$message\t".json_encode($data)."\n");
+        fwrite(static::$_traceHandle, round(microtime(true) * 1000)."\t$message\t".json_encode($data)."\n");
     }
 }

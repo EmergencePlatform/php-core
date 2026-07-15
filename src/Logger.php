@@ -4,10 +4,8 @@ namespace Emergence;
 
 use Psr\Log\LogLevel;
 use Psr\Log\LoggerInterface;
-
 use Site;
 use Emergence\Mailer\Mailer;
-
 
 class Logger extends \Psr\Log\AbstractLogger
 {
@@ -197,7 +195,7 @@ class Logger extends \Psr\Log\AbstractLogger
                  (empty($frame['class']) ? '' : $frame['class'])
                 .(empty($frame['type']) ? '' : $frame['type'])
                 .(empty($frame['function']) ? '' : $frame['function'])
-                .(empty($frame['args']) ? '' : '('.implode(',', array_map(fn($arg): ?string => is_string($arg) || is_numeric($arg) ? var_export($arg, true) : gettype($arg), $frame['args'])).')')
+                .(empty($frame['args']) ? '' : '('.implode(',', array_map(fn ($arg): ?string => is_string($arg) || is_numeric($arg) ? var_export($arg, true) : gettype($arg), $frame['args'])).')')
                 .(empty($frame['file']) ? '' : " called at $frame[file]:$frame[line]");
         }
 
