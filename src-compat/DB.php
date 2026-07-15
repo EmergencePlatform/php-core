@@ -359,6 +359,11 @@ class DB
     // protected static methods
     protected static function preprocessQuery($query, $parameters = null)
     {
+        // PHP 8 live runtime: MySQL 8 retires MyISAM (disabled outright on Cloud
+        // SQL); rewrite legacy hardcoded engine declarations at the query choke
+        // point (mirrors infra/archive/image/patch-core-db.sh on the archive track)
+        $query = str_replace('ENGINE=MyISAM', 'ENGINE=InnoDB', $query);
+
         if (empty($parameters)) {
             return $query;
         }
@@ -452,6 +457,12 @@ class DB
                 'username' => null,
                 'password' => null
             ), Site::getConfig('database'));
+
+            // PHP >= 8.1 defaults mysqli to MYSQLI_REPORT_ERROR|MYSQLI_REPORT_STRICT;
+            // restore errno-based error flow -- ActiveRecord's on-demand table
+            // creation catches TableNotFoundException raised from DB::handleError's
+            // errno checks, which never run if mysqli throws mysqli_sql_exception
+            mysqli_report(MYSQLI_REPORT_OFF);
 
             // connect to mysql database, ignoring connection errors
             $mysqli = @new mysqli($config['host'], $config['username'], $config['password'], null, $config['port'], $config['socket']);
