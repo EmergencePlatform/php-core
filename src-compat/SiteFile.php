@@ -6,7 +6,7 @@ class SiteFile
     public static $tableName = '_e_files';
     public static $dataPath = 'data';
     public static $collectionClass = 'SiteCollection';
-    public static $extensionMIMETypes = array(
+    public static $extensionMIMETypes = [
         'js' => 'application/javascript'
         ,'json' => 'application/json'
         ,'php' => 'application/php'
@@ -21,9 +21,9 @@ class SiteFile
         ,'svg' => 'image/svg+xml'
         ,'yml' => 'application/x-yaml'
         ,'yaml' => 'application/x-yaml'
-    );
-    public static $additionalHeaders = array(
-        'static' => array('Cache-Control: max-age=3600, must-revalidate', 'Pragma: public')
+    ];
+    public static $additionalHeaders = [
+        'static' => ['Cache-Control: max-age=3600, must-revalidate', 'Pragma: public']
         ,'image/png' => 'static'
         ,'image/jpeg' => 'static'
         ,'image/gif' => 'static'
@@ -36,16 +36,10 @@ class SiteFile
         ,'font/ttf' => 'static'
         ,'application/vnd.ms-fontobject' => 'static'
         ,'image/svg+xml' => 'static'
-    );
+    ];
 
-    // private properties
-    private $_handle;
-    private $_record;
-
-    public function __construct($handle, $record = null)
+    public function __construct(private $_handle, private $_record = null)
     {
-        $this->_handle = $handle;
-        $this->_record = $record;
     }
 
     protected $_mimeType;
@@ -58,7 +52,7 @@ class SiteFile
             case 'ID':
                 return $this->_record['path'];
             case 'Class':
-                return __CLASS__;
+                return self::class;
             case 'Handle':
                 return $this->_handle;
             case 'Type':
@@ -140,11 +134,11 @@ class SiteFile
         if (false === ($record = Cache::fetch($cacheKey))) {
             $record = DB::oneRecord(
                 'SELECT * FROM `%s` WHERE CollectionID = %u AND Handle = "%s" ORDER BY ID DESC LIMIT 1'
-                ,array(
+                ,[
                     static::$tableName
                     ,$collectionID
                     ,DB::escape($handle)
-                )
+                ]
             );
 
             // don't cache the temporary "Phantom" records created as placeholders during write
@@ -160,24 +154,24 @@ class SiteFile
     {
         DB::nonQuery('LOCK TABLES '.static::$tableName.' f1 READ, '.static::$tableName.' f2 READ, '.SiteCollection::$tableName.' collections READ');
 
-        $positions = DB::oneRecord('SELECT PosLeft, PosRight FROM `%s` collections WHERE ID = %u', array(
+        $positions = DB::oneRecord('SELECT PosLeft, PosRight FROM `%s` collections WHERE ID = %u', [
             SiteCollection::$tableName
             ,$Collection->ID
-        ));
+        ]);
 
         $fileResults = DB::query(
             'SELECT f2.* FROM (SELECT MAX(f1.ID) AS ID FROM `%1$s` f1 WHERE CollectionID IN (SELECT collections.ID FROM `%2$s` collections WHERE PosLeft BETWEEN %3$u AND %4$u) AND Status != "Phantom" GROUP BY f1.Handle) AS lastestFiles LEFT JOIN `%1$s` f2 ON (f2.ID = lastestFiles.ID) WHERE f2.Status != "Deleted"'
-            ,array(
+            ,[
                 static::$tableName
                 ,SiteCollection::$tableName
                 ,$positions['PosLeft']
                 ,$positions['PosRight']
-            )
+            ]
         );
 
         DB::nonQuery('UNLOCK TABLES');
 
-        $children = array();
+        $children = [];
         while ($record = $fileResults->fetch_assoc()) {
             $children[] = new static($record['Handle'], $record);
         }
@@ -189,14 +183,14 @@ class SiteFile
     {
         $result = DB::query(
             'SELECT * FROM `%s` WHERE CollectionID = %u AND Handle = "%s" ORDER BY ID DESC'
-            ,array(
+            ,[
                 static::$tableName
                 ,$this->CollectionID
                 ,DB::escape($this->Handle)
-            )
+            ]
         );
 
-        $revisions = array();
+        $revisions = [];
         while ($record = $result->fetch_assoc()) {
             $revisions[] = new static($record['Handle'], $record);
         }
@@ -277,9 +271,9 @@ class SiteFile
         $collectionClass = static::$collectionClass;
         $path = $collectionClass::getByID($collectionID)->getFullPath(null, false);
         $path[] = $handle;
-        static::fireFileEvent($path, 'fileWrite', array(
+        static::fireFileEvent($path, 'fileWrite', [
             'record' => $record
-        ));
+        ]);
 
         return $record;
     }
@@ -298,14 +292,14 @@ class SiteFile
         } elseif ($this->Status == 'Normal' && $this->SHA1 == $sha1) {
             return $this->_record;
         } else {
-            $record = static::createPhantom($this->CollectionID, $this->Handle, $ancestorID ? $ancestorID : $this->ID);
+            $record = static::createPhantom($this->CollectionID, $this->Handle, $ancestorID ?: $this->ID);
             static::saveRecordData($record, $data, $sha1);
         }
 
         // fire event
-        static::fireFileEvent($this->getFullPath(null, false), 'fileWrite', array(
+        static::fireFileEvent($this->getFullPath(null, false), 'fileWrite', [
             'record' => $record
-        ));
+        ]);
 
         return $record;
     }
@@ -314,16 +308,16 @@ class SiteFile
     {
         $timestamp = date('Y-m-d H:i:s');
 
-        DB::nonQuery('INSERT INTO `%s` SET CollectionID = %u, Handle = "%s", Status = "Phantom", Timestamp = "%s", AuthorID = %s, AncestorID = %s', array(
+        DB::nonQuery('INSERT INTO `%s` SET CollectionID = %u, Handle = "%s", Status = "Phantom", Timestamp = "%s", AuthorID = %s, AncestorID = %s', [
             static::$tableName
             ,$collectionID
             ,DB::escape($handle)
             ,$timestamp
             ,!empty($GLOBALS['Session']) && $GLOBALS['Session']->PersonID ? $GLOBALS['Session']->PersonID : 'NULL'
-            ,$ancestorID ? $ancestorID : 'NULL'
-        ));
+            ,$ancestorID ?: 'NULL'
+        ]);
 
-        return array(
+        return [
             'ID' => DB::insertID()
             ,'CollectionID' => $collectionID
             ,'Handle' => $handle
@@ -331,7 +325,7 @@ class SiteFile
             ,'Timestamp' => $timestamp
             ,'AuthorID' => !empty($GLOBALS['Session']) && $GLOBALS['Session']->PersonID ? $GLOBALS['Session']->PersonID : null
             ,'AncestorID' => $ancestorID
-        );
+        ];
     }
 
     public static function saveRecordData(&$record, $data, $sha1 = null)
@@ -346,7 +340,7 @@ class SiteFile
         }
 
         // update in-memory record
-        $record['SHA1'] = $sha1 ? $sha1 : sha1_file($filePath);
+        $record['SHA1'] = $sha1 ?: sha1_file($filePath);
         $record['Size'] = filesize($filePath);
         $record['Type'] = File::getMIMEType($filePath);
         $record['Status'] = 'Normal';
@@ -360,14 +354,14 @@ class SiteFile
         }
 
         // write record to database
-        DB::nonQuery('UPDATE `%s` SET SHA1 = "%s", Size = %u, Type = "%s", Timestamp = "%s", Status = "Normal" WHERE ID = %u', array(
+        DB::nonQuery('UPDATE `%s` SET SHA1 = "%s", Size = %u, Type = "%s", Timestamp = "%s", Status = "Normal" WHERE ID = %u', [
             static::$tableName
             ,$record['SHA1']
             ,$record['Size']
             ,$record['Type']
             ,$record['Timestamp']
             ,$record['ID']
-        ));
+        ]);
 
         // invalidate cache
         Cache::delete(static::getCacheKey($record['CollectionID'], $record['Handle']));
@@ -381,18 +375,18 @@ class SiteFile
 
         if ($this->Size == 0 && $authorID && $this->AuthorID == $authorID && !$this->AncestorID) {
             // updating existing record only if file is empty, by the same author, and has no ancestor
-            DB::nonQuery('UPDATE `%s` SET Handle = "%s", Timestamp = "%s" WHERE ID = %u', array(
+            DB::nonQuery('UPDATE `%s` SET Handle = "%s", Timestamp = "%s" WHERE ID = %u', [
                 static::$tableName
                 ,DB::escape($handle)
                 ,$timestamp
                 ,$this->ID
-            ));
+            ]);
             $this->_record['Timestamp'] = $timestamp;
         } else {
             // clone existing record
             DB::nonQuery(
                 'INSERT INTO `%s` SET CollectionID = %u, Handle = "%s", Status = "%s", SHA1 = "%s", Size = %u, Type = "%s", Timestamp = "%s", AuthorID = %s, AncestorID = %u'
-                ,array(
+                ,[
                     static::$tableName
                     ,$this->CollectionID
                     ,DB::escape($handle)
@@ -401,9 +395,9 @@ class SiteFile
                     ,$this->Size
                     ,$this->Type
                     ,$timestamp
-                    ,$this->AuthorID ? $this->AuthorID : 'NULL'
+                    ,$this->AuthorID ?: 'NULL'
                     ,$this->ID
-                )
+                ]
             );
             $newID = DB::insertID();
 
@@ -431,39 +425,39 @@ class SiteFile
         Cache::delete(static::getCacheKey($this->CollectionID, $handle));
 
         // fire event
-        static::fireFileEvent($this->getFullPath(null, false), 'fileRename', array(
+        static::fireFileEvent($this->getFullPath(null, false), 'fileRename', [
             'record' => $this->_record,
             'oldHandle' => $oldHandle,
             'newHandle' => $handle
-        ));
+        ]);
     }
 
     public function delete()
     {
-        DB::nonQuery('INSERT INTO `%s` SET CollectionID = %u, Handle = "%s", Status = "Deleted", Timestamp = "%s", AuthorID = %s, AncestorID = %u', array(
+        DB::nonQuery('INSERT INTO `%s` SET CollectionID = %u, Handle = "%s", Status = "Deleted", Timestamp = "%s", AuthorID = %s, AncestorID = %u', [
             static::$tableName
             ,$this->CollectionID
             ,DB::escape($this->Handle)
             ,date('Y-m-d H:i:s')
             ,!empty($GLOBALS['Session']) && $GLOBALS['Session']->PersonID ? $GLOBALS['Session']->PersonID : 'NULL'
             ,$this->ID
-        ));
+        ]);
 
         // invalidate cache
         Cache::delete(static::getCacheKey($this->CollectionID, $this->Handle));
 
         // fire event
-        static::fireFileEvent($this->getFullPath(null, false), 'fileDelete', array(
+        static::fireFileEvent($this->getFullPath(null, false), 'fileDelete', [
             'record' => $this->_record
-        ));
+        ]);
     }
 
     public function destroyRecord()
     {
-        DB::nonQuery('DELETE FROM `%s` WHERE ID = %u', array(
+        DB::nonQuery('DELETE FROM `%s` WHERE ID = %u', [
             static::$tableName
             ,$this->ID
-        ));
+        ]);
 
         // invalidate cache
         Cache::delete(static::getCacheKey($this->CollectionID, $this->Handle));
@@ -479,21 +473,21 @@ class SiteFile
     {
         DB::nonQuery('LOCK TABLES '.static::$tableName.' WRITE, '.static::$tableName.' AS f1 READ, '.static::$tableName.' AS f2 READ, '.SiteCollection::$tableName.' AS collections READ');
 
-        $positions = DB::oneRecord('SELECT PosLeft, PosRight FROM `%s` collections WHERE ID = %u', array(
+        $positions = DB::oneRecord('SELECT PosLeft, PosRight FROM `%s` collections WHERE ID = %u', [
             SiteCollection::$tableName
             ,$Collection->ID
-        ));
+        ]);
 
         DB::nonQuery(
             'INSERT INTO `%1$s` (CollectionID, Handle, Status, Timestamp, AuthorID, AncestorID) SELECT f2.CollectionID, f2.Handle, "Deleted", "%5$s", %6$s, f2.ID FROM (SELECT MAX(f1.ID) AS ID FROM `%1$s` f1 WHERE CollectionID IN (SELECT collections.ID FROM `%2$s` collections WHERE PosLeft BETWEEN %3$u AND %4$u) AND Status != "Phantom" GROUP BY f1.Handle) AS lastestFiles LEFT JOIN `%1$s` f2 ON (f2.ID = lastestFiles.ID) WHERE f2.Status != "Deleted"'
-            ,array(
+            ,[
                 static::$tableName
                 ,SiteCollection::$tableName
                 ,$positions['PosLeft']
                 ,$positions['PosRight']
                 ,date('Y-m-d H:i:s')
                 ,!empty($GLOBALS['Session']) && $GLOBALS['Session']->PersonID ? $GLOBALS['Session']->PersonID : 'NULL'
-            )
+            ]
         );
 
         DB::nonQuery('UNLOCK TABLES');
@@ -566,12 +560,12 @@ class SiteFile
         return $data;
     }
 
-    public static function fireFileEvent($path, $event, $payload = array())
+    public static function fireFileEvent($path, $event, $payload = [])
     {
-        if (!class_exists('Emergence\\EventBus')) {
+        if (!class_exists(\Emergence\EventBus::class)) {
             return;
         }
 
-        return \Emergence\EventBus::fireEvent($event, array_merge(array('Emergence', 'FS'), $path), $payload);
+        return \Emergence\EventBus::fireEvent($event, array_merge(['Emergence', 'FS'], $path), $payload);
     }
 }

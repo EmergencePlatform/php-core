@@ -20,19 +20,19 @@ class Emergence
 
         if ($_REQUEST['remote'] == 'parent') {
             set_time_limit(1800);
-            $remoteParams = array();
+            $remoteParams = [];
             if (!empty($_REQUEST['exclude'])) {
                 $remoteParams['exclude'] = $_REQUEST['exclude'];
             }
             if (!empty($_REQUEST['minId'])) {
                 $remoteParams['minId'] = $_REQUEST['minId'];
             }
-            HttpProxy::relayRequest(array(
+            HttpProxy::relayRequest([
                 'url' => static::buildUrl(Site::$pathStack, $remoteParams)
                 ,'autoAppend' => false
                 ,'autoQuery' => false
                 ,'timeout' => 500
-            ));
+            ]);
         }
 
         if (empty(Site::$pathStack[0])) {
@@ -55,15 +55,15 @@ class Emergence
     {
         set_time_limit(1800);
         $rootPath = $rootNode ? $rootNode->getFullPath(null, false) : null;
-        $collectionConditions = array();
-        $fileConditions = array();
+        $collectionConditions = [];
+        $fileConditions = [];
 
         // process excludes
         if (!empty($_REQUEST['exclude']) && method_exists('Emergence_FS', 'getNodesFromPattern')) {
-            $excludes = is_array($_REQUEST['exclude']) ? $_REQUEST['exclude'] : array($_REQUEST['exclude']);
+            $excludes = is_array($_REQUEST['exclude']) ? $_REQUEST['exclude'] : [$_REQUEST['exclude']];
 
-            $excludedCollections = array();
-            $excludedFiles = array();
+            $excludedCollections = [];
+            $excludedFiles = [];
 
             foreach (Emergence_FS::getNodesFromPattern($excludes) AS $node) {
                 if ($node->Class == 'SiteCollection') {
@@ -92,14 +92,14 @@ class Emergence
 
         header('HTTP/1.1 300 Multiple Choices');
         header('Content-Type: application/vnd.emergence.tree+json');
-        print(json_encode(array(
+        print(json_encode([
             'total' => count($files)
             ,'files' => $files
-        )));
+        ]));
         exit();
     }
 
-    public static function buildUrl($path = array(), $params = array())
+    public static function buildUrl($path = [], $params = [])
     {
         $params['accessKey'] = Site::getConfig('parent_key');
 
@@ -131,18 +131,18 @@ class Emergence
         fseek($fp, 0);
 
         // read and check status
-        list($protocol, $status, $message) = explode(' ', trim(fgetss($fp)));
+        [$protocol, $status, $message] = explode(' ', trim(fgetss($fp)));
 
-        return array(
+        return [
             'status' => (int)$status,
             'protocol' => $protocol,
             'message' => $message,
             'type' => curl_getinfo($ch, CURLINFO_CONTENT_TYPE),
             'resource' => $fp
-        );
+        ];
     }
 
-    public static function resolveFileFromParent($collection, $path, $forceRemote = false, $params = array())
+    public static function resolveFileFromParent($collection, $path, $forceRemote = false, $params = [])
     {
         if (!Site::getConfig('parent_hostname')) {
             return false;
@@ -199,7 +199,7 @@ class Emergence
                 if (!$header) {
                     break;
                 }
-                list($key, $value) = preg_split('/:\s*/', $header, 2);
+                [$key, $value] = preg_split('/:\s*/', $header, 2);
                 $key = strtolower($key);
 
                 // if etag found, use it to skip write if existing file matches

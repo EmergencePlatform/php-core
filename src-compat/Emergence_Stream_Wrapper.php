@@ -97,7 +97,7 @@ class Emergence_Stream_Wrapper
                 $mode |= 0040000;
             }
 
-            return array(
+            return [
                 'dev' => 0
                 ,'ino' => 0
                 ,'mode' => $mode
@@ -111,13 +111,13 @@ class Emergence_Stream_Wrapper
                 ,'ctime' => $timestamp
                 ,'blksize' => -1
                 ,'blocks' => -1
-            );
+            ];
         }
     }
 
     public static function is_real_path($path)
     {
-        return (strpos($path, Site::$rootPath) === 0);
+        return (str_starts_with((string) $path, (string) Site::$rootPath));
     }
 
     public static function get_real_handle($path)
@@ -131,7 +131,7 @@ class Emergence_Stream_Wrapper
         $fp = @fopen($path, 'r');
 
         stream_wrapper_unregister('file');
-        stream_wrapper_register('file', __CLASS__);
+        stream_wrapper_register('file', self::class);
 
         return $fp;
     }
@@ -139,7 +139,7 @@ class Emergence_Stream_Wrapper
     public static function get_virtual_path($path)
     {
         if ($path[0] == '/') {
-            return substr($path, 1);
+            return substr((string) $path, 1);
         } else {
             return 'site-root/'.$path;
         }

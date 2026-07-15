@@ -12,9 +12,9 @@ class Site
     public static $onInitialized;
     public static $onNotFound;
     public static $onRequestMapped;
-    public static $permittedOrigins = array();
+    public static $permittedOrigins = [];
     public static $autoPull = true;
-    public static $skipSessionPaths = array();
+    public static $skipSessionPaths = [];
     public static $onSiteCreated;
     public static $onBeforeScriptExecute;
     public static $onBeforeStaticResponse;
@@ -24,19 +24,19 @@ class Site
     public static $rootPath;
     public static $webmasterEmail = 'root@localhost';
     public static $requestURI;
-    public static $requestPath = array();
-    public static $pathStack = array();
-    public static $resolvedPath = array();
+    public static $requestPath = [];
+    public static $pathStack = [];
+    public static $resolvedPath = [];
     public static $resolvedNode;
     public static $config; // TODO: deprecated; use Site::getConfig(...)
     public static $initializeTime;
 
     // protected properties
-    protected static $_loadedClasses = array();
+    protected static $_loadedClasses = [];
     protected static $_rootCollections;
     protected static $_config;
 
-    public static function initialize($rootPath, $hostname = null, array $config)
+    public static function initialize($rootPath, $hostname = null, array $config = [])
     {
         static::$initializeTime = microtime(true);
 
@@ -53,14 +53,12 @@ class Site
             $debugHandler = new \Whoops\Handler\PrettyPageHandler();
             $debugHandler->addDataTableCallback(
                 'Routing',
-                function () {
-                    return [
-                        'requestPath' => implode('/', Site::$requestPath),
-                        'resolvedPath' => implode('/', Site::$resolvedPath),
-                        'resolvedNode' => Site::$resolvedNode ? Site::$resolvedNode->FullPath : null,
-                        'pathStack' => implode('/', Site::$pathStack)
-                    ];
-                }
+                fn() => [
+                    'requestPath' => implode('/', Site::$requestPath),
+                    'resolvedPath' => implode('/', Site::$resolvedPath),
+                    'resolvedNode' => Site::$resolvedNode ? Site::$resolvedNode->FullPath : null,
+                    'pathStack' => implode('/', Site::$pathStack)
+                ]
             );
             $whoops->pushHandler($debugHandler);
         } else {
@@ -112,11 +110,11 @@ class Site
         if (!empty($_SERVER['REQUEST_URI'])) {
             $path = $_SERVER['REQUEST_URI'];
 
-            if (false !== ($qPos = strpos($path, '?'))) {
-                $path = substr($path, 0, $qPos);
+            if (false !== ($qPos = strpos((string) $path, '?'))) {
+                $path = substr((string) $path, 0, $qPos);
             }
 
-            $path = rawurldecode($path);
+            $path = rawurldecode((string) $path);
 
             static::$pathStack = static::$requestPath = static::splitPath($path);
         }
@@ -136,10 +134,10 @@ class Site
         }
 
         // register class loader
-        spl_autoload_register('Site::loadClass');
+        spl_autoload_register(Site::loadClass(...));
 
         // check virtual system for site config
-        static::loadConfig(__CLASS__);
+        static::loadConfig(self::class);
 
         // load all bootstraps scripts
         foreach (static::getFilesystem()->listContents('php-bootstraps') as $bootstrapFile) {
@@ -165,7 +163,7 @@ class Site
             call_user_func(static::$onInitialized);
         }
 
-        if (class_exists('Emergence\\EventBus')) {
+        if (class_exists(\Emergence\EventBus::class)) {
             Emergence\EventBus::fireEvent('initialized', 'Site');
         }
     }
@@ -177,12 +175,12 @@ class Site
             try {
                 $userClass = User::getStaticDefaultClass();
 
-                $User = $userClass::create(array_merge($requestData['create_user'], array(
+                $User = $userClass::create(array_merge($requestData['create_user'], [
                     'AccountLevel' => 'Developer'
-                )));
+                ]));
                 $User->setClearPassword($requestData['create_user']['Password']);
                 $User->save();
-            } catch (Exception $e) {
+            } catch (Exception) {
                 // fail silently
             }
         }
@@ -192,7 +190,7 @@ class Site
             call_user_func(static::$onSiteCreated, $requestData);
         }
 
-        if (class_exists('Emergence\\EventBus')) {
+        if (class_exists(\Emergence\EventBus::class)) {
             Emergence\EventBus::fireEvent('siteCreated', 'Site', $requestData);
         }
     }
@@ -206,7 +204,7 @@ class Site
         ) {
             $hostname = strtolower(parse_url($_SERVER['HTTP_ORIGIN'], PHP_URL_HOST));
             if (
-                $hostname == strtolower(static::$hostname)
+                $hostname == strtolower((string) static::$hostname)
                 || (!empty($_SERVER['HTTP_HOST']) && $hostname == strtolower($_SERVER['HTTP_HOST']))
                 || static::$permittedOrigins == '*'
                 || in_array($hostname, static::$permittedOrigins)
@@ -252,15 +250,15 @@ class Site
             call_user_func(static::$onRequestMapped, static::$resolvedNode);
         }
 
-        if (class_exists('Emergence\\EventBus')) {
-            Emergence\EventBus::fireEvent('requestMapped', 'Site', array(
+        if (class_exists(\Emergence\EventBus::class)) {
+            Emergence\EventBus::fireEvent('requestMapped', 'Site', [
                 'node' => static::$resolvedNode
-            ));
+            ]);
         }
 
         // if resolved node is a collection, look for _index.php
         if (is_a(static::$resolvedNode, 'SiteCollection')) {
-            $indexNode = static::resolvePath(array_merge($pathResult['searchPath'], array('_index.php')));
+            $indexNode = static::resolvePath(array_merge($pathResult['searchPath'], ['_index.php']));
 
             if ($indexNode) {
                 // switch resolvedNode to the index script
@@ -278,15 +276,15 @@ class Site
         }
 
         // output response
-        if (is_callable(array(static::$resolvedNode, 'outputAsResponse'))) {
+        if (is_callable([static::$resolvedNode, 'outputAsResponse'])) {
             if (is_callable(static::$onBeforeStaticResponse)) {
                 call_user_func(static::$onBeforeStaticResponse, static::$resolvedNode);
             }
 
-            if (class_exists('Emergence\\EventBus')) {
-                Emergence\EventBus::fireEvent('beforeStaticResponse', 'Site', array(
+            if (class_exists(\Emergence\EventBus::class)) {
+                Emergence\EventBus::fireEvent('beforeStaticResponse', 'Site', [
                     'node' => static::$resolvedNode
-                ));
+                ]);
             }
 
             static::$resolvedNode->outputAsResponse();
@@ -300,7 +298,7 @@ class Site
     {
         // results returned at end:
         $resolvedNode = null;
-        $resolvedPath = array();
+        $resolvedPath = [];
 
         // normalize args
         if (is_string($path)) {
@@ -309,16 +307,16 @@ class Site
 
         // rewrite empty path to default page
         if (empty($path[0]) && static::$defaultPage) {
-            $path = array(static::$defaultPage);
+            $path = [static::$defaultPage];
         }
 
         // crawl down path stack until a handler is found
-        $searchPath = array('site-root');
+        $searchPath = ['site-root'];
         while ($handle = array_shift($path)) {
             $foundNode = null;
 
             // if path component doesn't already end in .php, check for a .php match first
-            if (substr($handle, -4) != '.php') {
+            if (!str_ends_with((string) $handle, '.php')) {
                 array_push($searchPath, $handle.'.php');
                 $foundNode = static::resolvePath($searchPath);
                 array_pop($searchPath);
@@ -372,7 +370,7 @@ class Site
 
             $createSession = true;
             foreach (static::$skipSessionPaths as $skipSessionPath) {
-                if (strpos($resolvedPath, $skipSessionPath) === 0) {
+                if (str_starts_with($resolvedPath, (string) $skipSessionPath)) {
                     $createSession = false;
                     break;
                 }
@@ -396,11 +394,11 @@ class Site
             call_user_func(static::$onBeforeScriptExecute, $_SCRIPT_NODE);
         }
 
-        if (class_exists('Emergence\\EventBus')) {
-            Emergence\EventBus::fireEvent('beforeScriptExecute', 'Site', array(
+        if (class_exists(\Emergence\EventBus::class)) {
+            Emergence\EventBus::fireEvent('beforeScriptExecute', 'Site', [
                 'node' => $_SCRIPT_NODE,
                 'exit' => $_SCRIPT_EXIT
-            ));
+            ]);
         }
 
         require($_SCRIPT_NODE->RealPath);
@@ -452,10 +450,10 @@ class Site
         }
 
         // try to load class PSR-0 style
-        if (!preg_match('/^Sabre_/', $className)) {
-            if ($lastNsPos = strrpos($className, '\\')) {
-                $namespace = substr($className, 0, $lastNsPos);
-                $className = substr($className, $lastNsPos + 1);
+        if (!preg_match('/^Sabre_/', (string) $className)) {
+            if ($lastNsPos = strrpos((string) $className, '\\')) {
+                $namespace = substr((string) $className, 0, $lastNsPos);
+                $className = substr((string) $className, $lastNsPos + 1);
                 $fileName  = str_replace('\\', DIRECTORY_SEPARATOR, $namespace).DIRECTORY_SEPARATOR;
             } else {
                 $fileName = '';
@@ -490,7 +488,7 @@ class Site
 
             // invoke __classLoaded
             if (method_exists($fullClassName, '__classLoaded')) {
-                call_user_func(array($fullClassName, '__classLoaded'));
+                call_user_func([$fullClassName, '__classLoaded']);
             }
         }
     }
@@ -503,13 +501,13 @@ class Site
         // TODO: re-enable cache
         // if (!$configFiles = Cache::fetch($cacheKey)) {
             $fs = static::getFilesystem();
-            $configFiles = array();
+            $configFiles = [];
 
 
             // compute file path for given class name
-            if ($lastNsPos = strrpos($className, '\\')) {
-                $namespace = substr($className, 0, $lastNsPos);
-                $className = substr($className, $lastNsPos + 1);
+            if ($lastNsPos = strrpos((string) $className, '\\')) {
+                $namespace = substr((string) $className, 0, $lastNsPos);
+                $className = substr((string) $className, $lastNsPos + 1);
                 $path  = str_replace('\\', DIRECTORY_SEPARATOR, $namespace).DIRECTORY_SEPARATOR;
             } else {
                 $path = '';
@@ -570,8 +568,8 @@ class Site
         $notFoundNode = null;
         while (count($notFoundStack)) { // last iteration is when site-root is all that's left
             if (
-                ($notFoundNode = static::resolvePath(array_merge($notFoundStack, array('_default.php')))) ||
-                ($notFoundNode = static::resolvePath(array_merge($notFoundStack, array('_notfound.php'))))
+                ($notFoundNode = static::resolvePath(array_merge($notFoundStack, ['_default.php']))) ||
+                ($notFoundNode = static::resolvePath(array_merge($notFoundStack, ['_notfound.php'])))
             ) {
                 // calculate pathStack and resolvedPath relative to each handler
                 static::$pathStack = array_slice(static::$requestPath, count($notFoundStack) - 1);
@@ -588,13 +586,13 @@ class Site
         die($message);
     }
 
-    public static function respondBadRequest($message = 'Cannot display resource')
+    public static function respondBadRequest($message = 'Cannot display resource'): never
     {
         header('HTTP/1.0 400 Bad Request');
         die($message);
     }
 
-    public static function respondUnauthorized($message = 'Access denied')
+    public static function respondUnauthorized($message = 'Access denied'): never
     {
         header('HTTP/1.0 403 Forbidden');
         die($message);
@@ -611,7 +609,7 @@ class Site
 
     public static function splitPath($path)
     {
-        return explode('/', ltrim($path, '/'));
+        return explode('/', ltrim((string) $path, '/'));
     }
 
     public static function isUsingHttps()
@@ -636,10 +634,10 @@ class Site
             $path = implode('/', $path);
         }
 
-        if (preg_match('/^https?:\/\//i', $path)) {
+        if (preg_match('/^https?:\/\//i', (string) $path)) {
             $url = $path;
         } else {
-            $url = (static::isUsingHttps() ? 'https' : 'http').'://'.($_SERVER['HTTP_HOST'] ?: Site::getConfig('primary_hostname')).'/'.ltrim($path, '/');
+            $url = (static::isUsingHttps() ? 'https' : 'http').'://'.($_SERVER['HTTP_HOST'] ?: Site::getConfig('primary_hostname')).'/'.ltrim((string) $path, '/');
         }
 
         if ($get) {
@@ -671,14 +669,14 @@ class Site
 
     public static function matchPath($index, $string)
     {
-        return 0==strcasecmp(static::getPath($index), $string);
+        return 0==strcasecmp((string) static::getPath($index), (string) $string);
     }
 
     public static function normalizePath($filename)
     {
         $filename = str_replace('//', '/', $filename);
         $parts = explode('/', $filename);
-        $out = array();
+        $out = [];
         foreach ($parts as $part) {
             if ($part == '.') {
                 continue;
@@ -746,10 +744,10 @@ class Site
 
         Emergence\EventBus::fireEvent(
             'timezoneSet',
-            __CLASS__,
-            array(
+            self::class,
+            [
                 'timezone' => $timezone
-            )
+            ]
         );
     }
 

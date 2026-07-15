@@ -34,7 +34,7 @@ class Cache
         if (function_exists('apcu_delete')) {
             return apcu_delete($key);
         } elseif (function_exists('apc_delete')) {
-            return apc_delete($key, $value, $ttl);
+            return apc_delete($key);
         } else {
             unset(static::$fallbackCache[$key]);
             return true;
@@ -46,7 +46,7 @@ class Cache
         if (function_exists('apcu_exists')) {
             return apcu_exists($key);
         } elseif (function_exists('apc_exists')) {
-            return apc_exists($key, $value, $ttl);
+            return apc_exists($key);
         } else {
             return array_key_exists($key, static::$fallbackCache);
         }
@@ -125,12 +125,12 @@ class Cache
     public static function getIterator($pattern)
     {
         // sanity check pattern
-        if (!preg_match('/^(.).+\1[a-zA-Z]*$/', $pattern)) {
+        if (!preg_match('/^(.).+\1[a-zA-Z]*$/', (string) $pattern)) {
             throw new Exception('Cache iterator pattern doesn\'t appear to have matching delimiters');
         }
 
         // modify pattern to insert key prefix and isolate matches to this site
-        $prefixPattern = preg_quote(static::getKeyPrefix());
+        $prefixPattern = preg_quote((string) static::getKeyPrefix());
         if ($pattern[1] == '^') {
             $pattern = substr_replace($pattern, $prefixPattern, 2, 0);
         } else {

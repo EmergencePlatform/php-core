@@ -7,7 +7,7 @@ class DuplicateKeyException extends Exception
 
     public function __construct($message, $code = 0, Exception $previous = null)
     {
-        if (preg_match('/Duplicate entry \'(?<value>[^\']+)\' for key \'(?<key>[^\']+)\'/', $message, $matches)) {
+        if (preg_match('/Duplicate entry \'(?<value>[^\']+)\' for key \'(?<key>[^\']+)\'/', (string) $message, $matches)) {
             $this->duplicateKey = $matches['key'];
             $this->duplicateValue = $matches['value'];
         }

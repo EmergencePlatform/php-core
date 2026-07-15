@@ -5,7 +5,7 @@ class HttpProxy
     // config properties
     public static $debugMode = false;
     public static $sourceInterface = false; // string=hostname or IP, null=http hostname, false=let cURL pick
-    public static $defaultPassthruHeaders = array(
+    public static $defaultPassthruHeaders = [
         '/^HTTP\//'
         ,'/^Content-Type:/'
         ,'/^X-Powered-By:/'
@@ -16,23 +16,23 @@ class HttpProxy
         ,'/^ETag:/'
         ,'/^Last-Modified:/'
         ,'/^Author:/'
-    );
-    public static $defaultForwardHeaders = array(
+    ];
+    public static $defaultForwardHeaders = [
         'Content-Type'
         ,'User-Agent'
         ,'Accept'
         ,'Accept-Charset'
         ,'Accept-Language'
-    );
+    ];
 
     public static function relayRequest($options)
     {
         if (is_string($options)) {
-            $options = array('url' => $options);
+            $options = ['url' => $options];
         }
 
         if (!isset($options['headers'])) {
-            $options['headers'] = array();
+            $options['headers'] = [];
         }
 
         if (!isset($options['passthruHeaders'])) {
@@ -44,11 +44,11 @@ class HttpProxy
         }
 
         if (!isset($options['interface'])) {
-            $options['interface'] = isset(static::$sourceInterface) ? static::$sourceInterface : $_SERVER['HTTP_HOST'];
+            $options['interface'] = static::$sourceInterface ?? $_SERVER['HTTP_HOST'];
         }
 
         if (!isset($options['method'])) {
-            $options['method'] = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'GET';
+            $options['method'] = $_SERVER['REQUEST_METHOD'] ?? 'GET';
         }
 
         if (!isset($options['debug'])) {
@@ -73,7 +73,7 @@ class HttpProxy
 
         // build headers
         foreach ($options['forwardHeaders'] AS $header) {
-            $headerKey = 'HTTP_'.str_replace('-', '_', strtoupper($header));
+            $headerKey = 'HTTP_'.str_replace('-', '_', strtoupper((string) $header));
 
             if (!empty($_SERVER[$headerKey])) {
                 $options['headers'][] = $header.': '.$_SERVER[$headerKey];
@@ -97,7 +97,7 @@ class HttpProxy
             curl_setopt($ch, CURLOPT_TIMEOUT, $options['timeout']);
         }
 
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, isset($options['timeoutConnect']) ? $options['timeoutConnect'] : 5);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $options['timeoutConnect'] ?? 5);
 
         // process response headers
         $responseHeaders = null;
@@ -111,17 +111,17 @@ class HttpProxy
             print_r($options);
             print('</pre>');
         } else {
-            $responseHeaders = array();
+            $responseHeaders = [];
             curl_setopt($ch, CURLOPT_HEADER, false);
             curl_setopt($ch, CURLOPT_HEADERFUNCTION, function ($ch, $header) use ($options, &$responseHeaders) {
-                $headerLength = strlen($header);
-                @list($headerKey, $headerValue) = array_pad(preg_split('/:\s*/', $header, 2), 2, null);
+                $headerLength = strlen((string) $header);
+                @[$headerKey, $headerValue] = array_pad(preg_split('/:\s*/', (string) $header, 2), 2, null);
                 if ($headerKey && $headerValue) {
                     $responseHeaders[$headerKey] = trim($headerValue);
                 }
 
                 foreach ($options['passthruHeaders'] AS $pattern) {
-                    if (preg_match($pattern, $header)) {
+                    if (preg_match($pattern, (string) $header)) {
                         // apply header transformation
                         if (!empty($options['headerTransformer'])) {
                             $header = call_user_func($options['headerTransformer'], $header);
@@ -160,9 +160,7 @@ class HttpProxy
             if (is_string($options['cookies'])) {
                 $cookieStr = $options['cookies'];
             } else {
-                $cookieStr = implode('; ', array_map(function ($key, $value) {
-                    return $key.'='.urlencode($value);
-                }, array_keys($options['cookies']), $options['cookies']));
+                $cookieStr = implode('; ', array_map(fn($key, $value) => $key.'='.urlencode((string) $value), array_keys($options['cookies']), $options['cookies']));
             }
 
             curl_setopt($ch, CURLOPT_COOKIE, $cookieStr);
@@ -185,20 +183,20 @@ class HttpProxy
             print_r(curl_getinfo($ch));
             print('</pre>');
             print('<h1>cURL error</h1><pre>'.var_export(curl_error($ch), true).'</pre>');
-            print('<h1>Response Length</h1>'.strlen($responseBody));
+            print('<h1>Response Length</h1>'.strlen((string) $responseBody));
             print('<h1>Response Body</h1><pre>');
-            print(htmlspecialchars($responseBody));
+            print(htmlspecialchars((string) $responseBody));
             print('</pre>');
         } elseif (!empty($options['returnResponse'])) {
             $curlInfo = curl_getinfo($ch);
             curl_close($ch);
-            return array(
+            return [
                 'headers' => $responseHeaders,
                 'body' => $responseBody,
                 'info' => $curlInfo
-            );
+            ];
         } elseif ($responseBody !== false) {
-            header('Content-Length: '.strlen($responseBody));
+            header('Content-Length: '.strlen((string) $responseBody));
             print($responseBody);
         } else {
             header('HTTP/1.1 502 Bad Gateway');

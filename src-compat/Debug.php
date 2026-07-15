@@ -2,7 +2,7 @@
 
 class Debug
 {
-    public static $log = array();
+    public static $log = [];
 
     public static function dump($var, $exit = true, $title = null)
     {
@@ -40,7 +40,7 @@ class Debug
 
     public static function logMessage($message, $source = null)
     {
-        return static::log(array('message' => $message), $source);
+        return static::log(['message' => $message], $source);
     }
 
     public static function log($entry, $source = null)
@@ -49,10 +49,10 @@ class Debug
             return;
         }
 
-        static::$log[] = array_merge($entry, array(
-            'source' => isset($source) ? $source : static::_detectSource()
+        static::$log[] = array_merge($entry, [
+            'source' => $source ?? static::_detectSource()
             ,'time' => sprintf('%f', microtime(true))
-        ));
+        ]);
     }
 
     protected static function _detectSource()
@@ -61,7 +61,7 @@ class Debug
 
         while ($trace = array_shift($backtrace)) {
             if (!empty($trace['class'])) {
-                if ($trace['class'] == __CLASS__) {
+                if ($trace['class'] == self::class) {
                     continue;
                 }
                 return $trace['class'];
@@ -74,7 +74,7 @@ class Debug
     }
 
     protected static $_traceHandle;
-    public static function writeTrace($message, $data = array())
+    public static function writeTrace($message, $data = [])
     {
         if (!static::$_traceHandle) {
             $filePath = Site::$rootPath.'/site-data/trace-logs/';
