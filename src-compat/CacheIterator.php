@@ -16,7 +16,7 @@ if (class_exists('APCUIterator', false)) {
             return extension_loaded('apcu') && version_compare(phpversion('apcu'), '4.0.2') < 0 ? new static($pattern) : new static('user', $pattern);
         }
 
-        public function current()
+        public function current(): mixed
         {
             $data = parent::current();
 
