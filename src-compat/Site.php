@@ -36,7 +36,7 @@ class Site
     protected static $_rootCollections;
     protected static $_config;
 
-    public static function initialize($rootPath, $hostname = null, array $config)
+    public static function initialize($rootPath, $hostname = null, array $config = [])
     {
         static::$initializeTime = microtime(true);
 
