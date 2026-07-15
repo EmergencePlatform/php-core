@@ -1,7 +1,7 @@
 <?php
 
 // read input
-@list($scriptPath, $hostname, $recipient, $sender, $queueId) = $argv;
+@[$scriptPath, $hostname, $recipient, $sender, $queueId] = $argv;
 
 if (!$hostname || !$recipient || !$sender || !$queueId) {
     print("One or more required parameters missing\n");
@@ -31,7 +31,7 @@ if (is_readable($hostmapPath)) {
         $hostnames = array_unique(array_merge([$config['primary_hostname']], $config['hostnames']));
 
         foreach ($hostnames AS $hostname) {
-            $hostmap['/^'.str_replace('\\*', '.*', preg_quote($hostname)).'$/i'] = basename($sitePath);
+            $hostmap['/^'.str_replace('\\*', '.*', preg_quote((string) $hostname)).'$/i'] = basename($sitePath);
         }
     }
 
@@ -43,7 +43,7 @@ if (is_readable($hostmapPath)) {
 // TODO: move this to a static Site method getHandleFromHostname, have initialize use it if hostname isn't provided (and swap initialize param order)
 $siteHandle = null;
 foreach ($hostmap AS $pattern => $patternHandle) {
-    if (preg_match($pattern, $hostname)) {
+    if (preg_match($pattern, (string) $hostname)) {
         $siteHandle = $patternHandle;
         break;
     }

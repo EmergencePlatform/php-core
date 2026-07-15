@@ -20,7 +20,7 @@ if (class_exists('APCUIterator', false)) {
         {
             $data = parent::current();
 
-            return extension_loaded('apcu') && version_compare(phpversion('apcu'), '4.0.3') < 0 ? array(
+            return extension_loaded('apcu') && version_compare(phpversion('apcu'), '4.0.3') < 0 ? [
                 'type' => 'user'
                 ,'key' => $data['key']
                 ,'value' => $data['value']
@@ -32,7 +32,7 @@ if (class_exists('APCUIterator', false)) {
                 ,'ref_count' => $data['ref_count']
                 ,'mem_size' => $data['mem_size']
                 ,'ttl' => $data['ttl']
-            ) : $data;
+            ] : $data;
         }
     }
 }

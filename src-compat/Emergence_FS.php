@@ -5,23 +5,21 @@
  * hashes are not currently available outside the VFS implementation, and this allows them to
  * be returned without being calculated unless/until they're used
  */
-class Emergence_FS_Deferred_SHA1
+class Emergence_FS_Deferred_SHA1 implements \Stringable
 {
-    private $path;
     private $hash;
 
-    public function __construct($path)
+    public function __construct(private $path)
     {
-        $this->path = $path;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         if (!$this->hash) {
             $this->hash = sha1_file(SiteFile::getRealPathByID($this->path));
         }
 
-        return $this->hash;
+        return (string) $this->hash;
     }
 }
 
@@ -33,7 +31,7 @@ class Emergence_FS
         return 0;
     }
 
-    public static function getTree($path = null, $localOnly = false, $includeDeleted = false, $conditions = [])
+    public static function getTree($path = null, $localOnly = false, $includeDeleted = false, $conditions = []): never
     {
         throw new Exception('TODO: implement getTree');
     }
@@ -101,22 +99,22 @@ class Emergence_FS
         return $files;
     }
 
-    public static function getTreeFilesFromTree($tree, $conditions = [])
+    public static function getTreeFilesFromTree($tree, $conditions = []): never
     {
         throw new Exception('TODO: implement getTreeFilesFromTree');
     }
 
-    public static function exportTree($sourcePath, $destinationPath, $options = [])
+    public static function exportTree($sourcePath, $destinationPath, $options = []): never
     {
         throw new Exception('TODO: implement exportTree');
     }
 
-    public static function importFile($sourcePath, $destinationPath)
+    public static function importFile($sourcePath, $destinationPath): never
     {
         throw new Exception('TODO: implement importFile');
     }
 
-    public static function importTree($sourcePath, $destinationPath, $options = [])
+    public static function importTree($sourcePath, $destinationPath, $options = []): never
     {
         throw new Exception('TODO: implement importTree');
     }
@@ -129,7 +127,7 @@ class Emergence_FS
         return $tmpPath;
     }
 
-    public static function getCollectionLayers($path, $localOnly = false)
+    public static function getCollectionLayers($path, $localOnly = false): never
     {
         throw new Exception('TODO: implement getCollectionLayers');
     }
@@ -189,7 +187,7 @@ class Emergence_FS
         return $children;
     }
 
-    public static function getNodesFromPattern($patterns, $localOnly = false)
+    public static function getNodesFromPattern($patterns, $localOnly = false): never
     {
         throw new Exception('TODO: implement getNodesFromPattern');
     }
@@ -198,7 +196,7 @@ class Emergence_FS
     {
         if ($excludes) {
             foreach ($excludes as $excludePattern) {
-                if (preg_match($excludePattern, $relPath)) {
+                if (preg_match($excludePattern, (string) $relPath)) {
                     return true;
                 }
             }

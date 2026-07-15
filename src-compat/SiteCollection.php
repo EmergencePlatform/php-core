@@ -6,27 +6,22 @@ class SiteCollection
     public static $tableName = '_e_file_collections';
     public static $autoCreate = false;
     public static $fileClass = 'SiteFile';
-
-    // protected properties
-    protected $_handle;
     protected $_record;
     protected $_parent;
 
-    public function __construct($handle, $record = null)
+    public function __construct(protected $_handle, $record = null)
     {
-        $this->_handle = $handle;
-
         if ($record) {
             $this->_record = $record;
         } else {
-            $this->_record = static::getRecordByHandle($handle);
+            $this->_record = static::getRecordByHandle($this->_handle);
         }
 
         if (!$this->_record) {
             if (static::$autoCreate) {
-                $this->_record = static::createRecord($handle);
+                $this->_record = static::createRecord($this->_handle);
             } else {
-                throw new Exception('Collection with name '.$handle.' could not be located');
+                throw new Exception('Collection with name '.$this->_handle.' could not be located');
             }
         }
     }
@@ -37,7 +32,7 @@ class SiteCollection
             case 'ID':
                 return $this->_record['path'];
             case 'Class':
-                return __CLASS__;
+                return self::class;
             case 'Handle':
                 return $this->_handle;
             case 'Status':
@@ -99,7 +94,7 @@ class SiteCollection
     {
         // build cache key and query conditions
         $cacheKey = static::getCacheKey($handle, $parentID, $remote);
-        $where = array();
+        $where = [];
 
         if ($parentID) {
             $where[] = sprintf('ParentID = %u', $parentID);
@@ -124,10 +119,10 @@ class SiteCollection
         // query and cache
         $record = DB::oneRecord(
             'SELECT * FROM `%s` WHERE (%s) ORDER BY ID DESC LIMIT 1'
-            ,array(
+            ,[
                 static::$tableName
                 ,implode(') AND (', $where)
-            )
+            ]
         );
 
         Cache::store($cacheKey, $record);
@@ -139,23 +134,23 @@ class SiteCollection
     {
         DB::nonQuery('LOCK TABLES '.static::$tableName.' READ');
 
-        $positions = DB::oneRecord('SELECT PosLeft, PosRight FROM `%s` WHERE ID = %u', array(
+        $positions = DB::oneRecord('SELECT PosLeft, PosRight FROM `%s` WHERE ID = %u', [
             static::$tableName
             ,$this->ID
-        ));
+        ]);
 
         $collectionResults = DB::query(
             'SELECT * FROM `%1$s` WHERE PosLeft BETWEEN %2$u AND %3$u AND Status = "Normal"'
-            ,array(
+            ,[
                 static::$tableName
                 ,$positions['PosLeft']
                 ,$positions['PosRight']
-            )
+            ]
         );
 
         DB::nonQuery('UNLOCK TABLES');
 
-        $children = array();
+        $children = [];
         while ($record = $collectionResults->fetch_assoc()) {
             $children[] = new static($record['Handle'], $record);
         }
@@ -178,15 +173,15 @@ class SiteCollection
     public function getChildren()
     {
         $fileClass = static::$fileClass;
-        $children = array();
+        $children = [];
 
         // get collections
         $collectionResults = DB::query(
             'SELECT * FROM `%s` WHERE ParentID = %u AND Status = "Normal"'
-            ,array(
+            ,[
                 static::$tableName
                 ,$this->ID
-            )
+            ]
         );
 
         while ($record = $collectionResults->fetch_assoc()) {
@@ -196,10 +191,10 @@ class SiteCollection
         // get files
         $fileResults = DB::query(
             'SELECT f2.* FROM (SELECT MAX(f1.ID) AS ID FROM `%1$s` f1 WHERE CollectionID = %2$u AND Status != "Phantom" GROUP BY f1.Handle) AS lastestFiles LEFT JOIN `%1$s` f2 ON (f2.ID = lastestFiles.ID) WHERE f2.Status = "Normal"'
-            ,array(
+            ,[
                 $fileClass::$tableName
                 ,$this->ID
-            )
+            ]
         );
 
         while ($record = $fileResults->fetch_assoc()) {
@@ -283,7 +278,7 @@ class SiteCollection
         }
 
         // discover parent tree
-        $tree = array($node = $this);
+        $tree = [$node = $this];
         while ($node->ParentID) {
             $tree[] = $node = static::getByID($node->ParentID);
         }
@@ -383,21 +378,21 @@ class SiteCollection
         // check for existing deleted node
         $existingRecord = DB::oneRecord(
             'SELECT * FROM `%s` WHERE Site = "%s" AND ParentID = %s AND Handle = "%s"'
-            ,array(
+            ,[
                 static::$tableName
                 ,$parentCollection ? $parentCollection->Site : ($remote ? 'Remote' : 'Local')
                 ,$parentCollection ? $parentCollection->ID : 'NULL'
                 ,DB::escape($handle)
-            )
+            ]
         );
 
         if ($existingRecord) {
             DB::nonQuery(
                 'UPDATE `%s` SET Status = "Normal" WHERE ID = %u'
-                ,array(
+                ,[
                     static::$tableName
                     ,$existingRecord['ID']
-                )
+                ]
             );
 
             return $existingRecord['ID'];
@@ -409,7 +404,7 @@ class SiteCollection
         try {
             // determine new node's position
             if ($parentCollection) {
-                $left = DB::oneValue('SELECT PosRight FROM `%s` WHERE ID = %u', array(static::$tableName, $parentCollection->ID));
+                $left = DB::oneValue('SELECT PosRight FROM `%s` WHERE ID = %u', [static::$tableName, $parentCollection->ID]);
             } else {
                 $left = DB::oneValue('SELECT IFNULL(MAX(PosRight)+1, 1) FROM `%s`', static::$tableName);
             }
@@ -419,22 +414,22 @@ class SiteCollection
                 // push rest of set right by 2 to make room
                 DB::nonQuery(
                     'UPDATE `%s` SET PosRight = PosRight + 2 WHERE PosRight >= %u ORDER BY PosRight DESC'
-                    ,array(
+                    ,[
                         static::$tableName
                         ,$left
-                    )
+                    ]
                 );
                 DB::nonQuery(
                     'UPDATE `%s` SET PosLeft = PosLeft + 2 WHERE PosLeft > %u ORDER BY PosLeft DESC'
-                    ,array(
+                    ,[
                         static::$tableName
                         ,$left
-                    )
+                    ]
                 );
             }
 
             // create record
-            DB::nonQuery('INSERT INTO `%s` SET Site = "%s", Handle = "%s", CreatorID = %u, ParentID = %s, PosLeft = %u, PosRight = %u', array(
+            DB::nonQuery('INSERT INTO `%s` SET Site = "%s", Handle = "%s", CreatorID = %u, ParentID = %s, PosLeft = %u, PosRight = %u', [
                 static::$tableName
                 ,$parentCollection ? $parentCollection->Site : ($remote ? 'Remote' : 'Local')
                 ,DB::escape($handle)
@@ -442,7 +437,7 @@ class SiteCollection
                 ,$parentCollection ? $parentCollection->ID : 'NULL'
                 ,$left
                 ,$right
-            ));
+            ]);
 
             $newID = DB::insertID();
         } catch (Exception $e) {
@@ -462,11 +457,11 @@ class SiteCollection
         Cache::delete(static::getCacheKey($handle, $this->ParentID, $this->Site == 'Remote'));
         Cache::delete('efs:col:'.$this->ID);
 
-        DB::nonQuery('UPDATE `%s` SET Handle = "%s" WHERE ID = %u', array(
+        DB::nonQuery('UPDATE `%s` SET Handle = "%s" WHERE ID = %u', [
             static::$tableName
             ,DB::escape($handle)
             ,$this->ID
-        ));
+        ]);
     }
 
     public function setStatus($status)
@@ -474,11 +469,11 @@ class SiteCollection
         Cache::delete(static::getCacheKey($this->Handle, $this->ParentID, $this->Site == 'Remote'));
         Cache::delete('efs:col:'.$this->ID);
 
-        DB::nonQuery('UPDATE `%s` SET Status = "%s" WHERE ID = %u', array(
+        DB::nonQuery('UPDATE `%s` SET Status = "%s" WHERE ID = %u', [
             static::$tableName
             ,DB::escape($status)
             ,$this->ID
-        ));
+        ]);
     }
 
     public function getLastModified()
@@ -492,17 +487,17 @@ class SiteCollection
 
         DB::nonQuery('LOCK TABLES '.static::$tableName.' WRITE');
 
-        $positions = DB::oneRecord('SELECT PosLeft, PosRight FROM `%s` WHERE ID = %u', array(
+        $positions = DB::oneRecord('SELECT PosLeft, PosRight FROM `%s` WHERE ID = %u', [
             static::$tableName
             ,$this->ID
-        ));
+        ]);
 
         // mark collection and all subcollections as deleted
-        DB::nonQuery('UPDATE `%s` SET Status = "Deleted" WHERE PosLeft BETWEEN %u AND %u', array(
+        DB::nonQuery('UPDATE `%s` SET Status = "Deleted" WHERE PosLeft BETWEEN %u AND %u', [
             static::$tableName
             ,$positions['PosLeft']
             ,$positions['PosRight']
-        ));
+        ]);
 
         DB::nonQuery('UNLOCK TABLES');
 

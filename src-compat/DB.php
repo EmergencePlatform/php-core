@@ -8,7 +8,7 @@ class DB
 
     // protected properties
     protected static $_mysqli;
-    protected static $_record_cache = array();
+    protected static $_record_cache = [];
 
     // public static methods
     public static function escape($string)
@@ -118,9 +118,9 @@ class DB
         // execute query
         $result = self::query($query, $parameters);
 
-        $records = array();
+        $records = [];
         while ($record = $result->fetch_assoc()) {
-            $records[$record[$tableKey] ? $record[$tableKey] : $nullKey] = $record;
+            $records[$record[$tableKey] ?: $nullKey] = $record;
         }
 
         // free result
@@ -134,10 +134,10 @@ class DB
         // execute query
         $result = self::query($query, $parameters);
 
-        $records = array();
+        $records = [];
         while ($record = $result->fetch_assoc()) {
             if (!array_key_exists($record[$tableKey], $records)) {
-                $records[$record[$tableKey]] = array();
+                $records[$record[$tableKey]] = [];
             }
 
             $records[$record[$tableKey]][] = $record;
@@ -154,7 +154,7 @@ class DB
         // execute query
         $result = self::query($query, $parameters);
 
-        $records = array();
+        $records = [];
         while ($record = $result->fetch_assoc()) {
             $records[$record[$tableKey]] = $record[$valueKey];
         }
@@ -170,7 +170,7 @@ class DB
         // execute query
         $result = self::query($query, $parameters);
 
-        $records = array();
+        $records = [];
         while ($record = $result->fetch_assoc()) {
             foreach ($classMapping AS $key => $class) {
                 $record[$key] = new $class($record[$key]);
@@ -190,11 +190,11 @@ class DB
         // execute query
         try {
             $result = self::query($query, $parameters);
-        } catch (TableNotFoundException $e) {
+        } catch (TableNotFoundException) {
             return [];
         }
 
-        $records = array();
+        $records = [];
         while ($record = $result->fetch_assoc()) {
             $records[] = new $className($record);
         }
@@ -212,11 +212,11 @@ class DB
         // execute query
         try {
             $result = self::query($query, $parameters);
-        } catch (TableNotFoundException $e) {
+        } catch (TableNotFoundException) {
             return [];
         }
 
-        $records = array();
+        $records = [];
         while ($record = $result->fetch_assoc()) {
             $records[] = $record;
         }
@@ -232,11 +232,11 @@ class DB
         // execute query
         try {
             $result = self::query($query, $parameters);
-        } catch (TableNotFoundException $e) {
+        } catch (TableNotFoundException) {
             return [];
         }
 
-        $records = array();
+        $records = [];
         while ($record = $result->fetch_assoc()) {
             $records[] = $record[$valueKey];
         }
@@ -257,12 +257,12 @@ class DB
         // check for cached record
         if (array_key_exists($cacheKey, self::$_record_cache)) {
             // log cache hit
-            Debug::log(array(
+            Debug::log([
                 'cache_hit' => true
                 ,'query' => $query
                 ,'cache_key' => $cacheKey
                 ,'method' => __FUNCTION__
-            ));
+            ]);
 
             // return cache hit
             return self::$_record_cache[$cacheKey];
@@ -271,7 +271,7 @@ class DB
         // preprocess and execute query
         try {
             $result = self::query($query, $parameters);
-        } catch (TableNotFoundException $e) {
+        } catch (TableNotFoundException) {
             return null;
         }
 
@@ -300,7 +300,7 @@ class DB
         // preprocess and execute query
         try {
             $result = self::query($query, $parameters);
-        } catch (TableNotFoundException $e) {
+        } catch (TableNotFoundException) {
             return null;
         }
 
@@ -336,7 +336,7 @@ class DB
         }
     }
 
-    public static function makeOrderString($order = array())
+    public static function makeOrderString($order = [])
     {
         $s = '';
 
@@ -391,10 +391,10 @@ class DB
         }
 
         // create a new query log structure
-        return array(
+        return [
             'query' => $query
             ,'time_start' => sprintf('%f',microtime(true))
-        );
+        ];
     }
 
     protected static function extendQueryLog(&$queryLog, $key, $value)
@@ -432,7 +432,7 @@ class DB
                 continue;
             }
 
-            if (empty($backtick['class']) || $backtick['class'] != __CLASS__) {
+            if (empty($backtick['class']) || $backtick['class'] != self::class) {
                 break;
             }
 
@@ -450,13 +450,13 @@ class DB
     public static function getMysqli()
     {
         if (!isset(self::$_mysqli)) {
-            $config = array_merge(array(
+            $config = array_merge([
                 'host' => 'localhost',
                 'port' => 3306,
                 'socket' => null,
                 'username' => null,
                 'password' => null
-            ), Site::getConfig('database'));
+            ], Site::getConfig('database'));
 
             // PHP >= 8.1 defaults mysqli to MYSQLI_REPORT_ERROR|MYSQLI_REPORT_STRICT;
             // restore errno-based error flow -- ActiveRecord's on-demand table
