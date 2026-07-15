@@ -46,10 +46,11 @@ class SiteFile
     protected $_sha1;
     protected $_collection;
 
-    public function __get($name)
+    public function __get(string $name): mixed
     {
         switch ($name) {
             case 'ID':
+            case 'FullPath':
                 return $this->_record['path'];
             case 'Class':
                 return self::class;
@@ -93,22 +94,22 @@ class SiteFile
                 return $this->_collection;
             case 'RealPath':
                 return static::getRealPathByID($this->_record['path']);
-            case 'FullPath':
-                return $this->_record['path'];
         }
+
+        return null;
     }
 
-    public function __isset($name)
+    public function __isset(string $name)
     {
         return $this->__get($name) !== null;
     }
 
-    public static function getCacheKey($collectionID, $handle)
+    public static function getCacheKey(string $collectionID, $handle): string
     {
         return sprintf('efs:file/%u/%s', $collectionID, $handle);
     }
 
-    public static function getByID($fileID)
+    public static function getByID($fileID): ?self
     {
         $fs = Site::getFilesystem();
 
@@ -127,14 +128,14 @@ class SiteFile
         return new static($entry['basename'], $entry);
     }
 
-    public static function getByHandle($collectionID, $handle)
+    public static function getByHandle(string $collectionID, $handle): ?self
     {
         $cacheKey = static::getCacheKey($collectionID, $handle);
 
         if (false === ($record = Cache::fetch($cacheKey))) {
             $record = DB::oneRecord(
-                'SELECT * FROM `%s` WHERE CollectionID = %u AND Handle = "%s" ORDER BY ID DESC LIMIT 1'
-                ,[
+                'SELECT * FROM `%s` WHERE CollectionID = %u AND Handle = "%s" ORDER BY ID DESC LIMIT 1',
+                [
                     static::$tableName
                     ,$collectionID
                     ,DB::escape($handle)
@@ -150,7 +151,10 @@ class SiteFile
         return $record ? new static($record['Handle'], $record) : null;
     }
 
-    public static function getTree(SiteCollection $Collection)
+    /**
+     * @return static[]
+     */
+    public static function getTree(SiteCollection $Collection): array
     {
         DB::nonQuery('LOCK TABLES '.static::$tableName.' f1 READ, '.static::$tableName.' f2 READ, '.SiteCollection::$tableName.' collections READ');
 
@@ -160,8 +164,8 @@ class SiteFile
         ]);
 
         $fileResults = DB::query(
-            'SELECT f2.* FROM (SELECT MAX(f1.ID) AS ID FROM `%1$s` f1 WHERE CollectionID IN (SELECT collections.ID FROM `%2$s` collections WHERE PosLeft BETWEEN %3$u AND %4$u) AND Status != "Phantom" GROUP BY f1.Handle) AS lastestFiles LEFT JOIN `%1$s` f2 ON (f2.ID = lastestFiles.ID) WHERE f2.Status != "Deleted"'
-            ,[
+            'SELECT f2.* FROM (SELECT MAX(f1.ID) AS ID FROM `%1$s` f1 WHERE CollectionID IN (SELECT collections.ID FROM `%2$s` collections WHERE PosLeft BETWEEN %3$u AND %4$u) AND Status != "Phantom" GROUP BY f1.Handle) AS lastestFiles LEFT JOIN `%1$s` f2 ON (f2.ID = lastestFiles.ID) WHERE f2.Status != "Deleted"',
+            [
                 static::$tableName
                 ,SiteCollection::$tableName
                 ,$positions['PosLeft']
@@ -179,11 +183,14 @@ class SiteFile
         return $children;
     }
 
-    public function getRevisions()
+    /**
+     * @return static[]
+     */
+    public function getRevisions(): array
     {
         $result = DB::query(
-            'SELECT * FROM `%s` WHERE CollectionID = %u AND Handle = "%s" ORDER BY ID DESC'
-            ,[
+            'SELECT * FROM `%s` WHERE CollectionID = %u AND Handle = "%s" ORDER BY ID DESC',
+            [
                 static::$tableName
                 ,$this->CollectionID
                 ,DB::escape($this->Handle)
@@ -198,7 +205,7 @@ class SiteFile
         return $revisions;
     }
 
-    public function getRealPath()
+    public function getRealPath(): string
     {
         return static::getRealPathByID($this->ID);
     }
@@ -206,11 +213,11 @@ class SiteFile
     public function getFullPath($root = null, $prependParent = true)
     {
         $path = $this->Collection->getFullPath($root, $prependParent);
-        array_push($path, $this->Handle);
+        $path[] = $this->Handle;
         return $path;
     }
 
-    public static function getRealPathByID($ID)
+    public static function getRealPathByID($ID): string
     {
         if (is_int($ID)) {
             return '/src/staging.2020.phillytechweek.com/.data/file-data/'.$ID;
@@ -229,7 +236,7 @@ class SiteFile
         return $this->Size;
     }
 
-    public function getETag()
+    public function getETag(): ?string
     {
         return $this->SHA1 ? ('"'.$this->SHA1.'"') : null;
     }
@@ -304,7 +311,7 @@ class SiteFile
         return $record;
     }
 
-    public static function createPhantom($collectionID, $handle, $ancestorID = null)
+    public static function createPhantom($collectionID, $handle, $ancestorID = null): array
     {
         $timestamp = date('Y-m-d H:i:s');
 
@@ -328,7 +335,7 @@ class SiteFile
         ];
     }
 
-    public static function saveRecordData(&$record, $data, $sha1 = null)
+    public static function saveRecordData(&$record, $data, $sha1 = null): void
     {
         // save file
         $filePath = static::getRealPathByID($record['ID']);
@@ -367,7 +374,7 @@ class SiteFile
         Cache::delete(static::getCacheKey($record['CollectionID'], $record['Handle']));
     }
 
-    public function setName($handle)
+    public function setName($handle): void
     {
         $authorID = !empty($GLOBALS['Session']) && $GLOBALS['Session']->PersonID ? $GLOBALS['Session']->PersonID : null;
         $oldHandle = $this->_handle;
@@ -385,8 +392,8 @@ class SiteFile
         } else {
             // clone existing record
             DB::nonQuery(
-                'INSERT INTO `%s` SET CollectionID = %u, Handle = "%s", Status = "%s", SHA1 = "%s", Size = %u, Type = "%s", Timestamp = "%s", AuthorID = %s, AncestorID = %u'
-                ,[
+                'INSERT INTO `%s` SET CollectionID = %u, Handle = "%s", Status = "%s", SHA1 = "%s", Size = %u, Type = "%s", Timestamp = "%s", AuthorID = %s, AncestorID = %u',
+                [
                     static::$tableName
                     ,$this->CollectionID
                     ,DB::escape($handle)
@@ -432,7 +439,7 @@ class SiteFile
         ]);
     }
 
-    public function delete()
+    public function delete(): void
     {
         DB::nonQuery('INSERT INTO `%s` SET CollectionID = %u, Handle = "%s", Status = "Deleted", Timestamp = "%s", AuthorID = %s, AncestorID = %u', [
             static::$tableName
@@ -452,7 +459,7 @@ class SiteFile
         ]);
     }
 
-    public function destroyRecord()
+    public function destroyRecord(): void
     {
         DB::nonQuery('DELETE FROM `%s` WHERE ID = %u', [
             static::$tableName
@@ -469,7 +476,7 @@ class SiteFile
      * Warning: this method is designed to be called from SiteCollection::delete and will leave stale cache entries if called
      * on its own
      */
-    public static function deleteTree(SiteCollection $Collection)
+    public static function deleteTree(SiteCollection $Collection): void
     {
         DB::nonQuery('LOCK TABLES '.static::$tableName.' WRITE, '.static::$tableName.' AS f1 READ, '.static::$tableName.' AS f2 READ, '.SiteCollection::$tableName.' AS collections READ');
 
@@ -479,8 +486,8 @@ class SiteFile
         ]);
 
         DB::nonQuery(
-            'INSERT INTO `%1$s` (CollectionID, Handle, Status, Timestamp, AuthorID, AncestorID) SELECT f2.CollectionID, f2.Handle, "Deleted", "%5$s", %6$s, f2.ID FROM (SELECT MAX(f1.ID) AS ID FROM `%1$s` f1 WHERE CollectionID IN (SELECT collections.ID FROM `%2$s` collections WHERE PosLeft BETWEEN %3$u AND %4$u) AND Status != "Phantom" GROUP BY f1.Handle) AS lastestFiles LEFT JOIN `%1$s` f2 ON (f2.ID = lastestFiles.ID) WHERE f2.Status != "Deleted"'
-            ,[
+            'INSERT INTO `%1$s` (CollectionID, Handle, Status, Timestamp, AuthorID, AncestorID) SELECT f2.CollectionID, f2.Handle, "Deleted", "%5$s", %6$s, f2.ID FROM (SELECT MAX(f1.ID) AS ID FROM `%1$s` f1 WHERE CollectionID IN (SELECT collections.ID FROM `%2$s` collections WHERE PosLeft BETWEEN %3$u AND %4$u) AND Status != "Phantom" GROUP BY f1.Handle) AS lastestFiles LEFT JOIN `%1$s` f2 ON (f2.ID = lastestFiles.ID) WHERE f2.Status != "Deleted"',
+            [
                 static::$tableName
                 ,SiteCollection::$tableName
                 ,$positions['PosLeft']
@@ -493,7 +500,7 @@ class SiteFile
         DB::nonQuery('UNLOCK TABLES');
     }
 
-    public function outputAsResponse($includeAuthor = false)
+    public function outputAsResponse($includeAuthor = false): void
     {
         if (extension_loaded('newrelic')) {
             newrelic_disable_autorum();
@@ -507,7 +514,7 @@ class SiteFile
                 $headers = static::$additionalHeaders[$headers];
             }
 
-            foreach ($headers AS $header) {
+            foreach ($headers as $header) {
                 header($header);
             }
         }
@@ -515,17 +522,19 @@ class SiteFile
         // use SHA1 for ETag and manifest-based caching
         header('ETag: '.$this->SHA1);
         if (!empty($_GET['_sha1']) && $_GET['_sha1'] == $this->SHA1) {
-            $expires = 60*60*24*365;
+            $expires = 60 * 60 * 24 * 365;
             header('Cache-Control: public, max-age='.$expires);
-            header('Expires: '.gmdate('D, d M Y H:i:s \G\M\T', time()+$expires));
+            header('Expires: '.gmdate('D, d M Y H:i:s \G\M\T', time() + $expires));
             header('Pragma: public');
         }
-
         // send 304 and exit if current version matches HTTP_IF_* check
         if (!empty($_SERVER['HTTP_IF_NONE_MATCH']) && $_SERVER['HTTP_IF_NONE_MATCH'] == $this->SHA1) {
             header('HTTP/1.0 304 Not Modified');
             exit();
-        } elseif (!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $this->Timestamp) {
+        }
+
+        // send 304 and exit if current version matches HTTP_IF_* check
+        if (!empty($_SERVER['HTTP_IF_MODIFIED_SINCE']) && strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']) >= $this->Timestamp) {
             header('HTTP/1.0 304 Not Modified');
             exit();
         }
@@ -560,10 +569,10 @@ class SiteFile
         return $data;
     }
 
-    public static function fireFileEvent($path, $event, $payload = [])
+    public static function fireFileEvent($path, $event, $payload = []): ?array
     {
         if (!class_exists(\Emergence\EventBus::class)) {
-            return;
+            return null;
         }
 
         return \Emergence\EventBus::fireEvent($event, array_merge(['Emergence', 'FS'], $path), $payload);

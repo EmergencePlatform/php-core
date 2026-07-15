@@ -34,10 +34,11 @@ class Emergence
                 ,'timeout' => 500
             ]);
         }
-
         if (empty(Site::$pathStack[0])) {
             return static::handleTreeRequest();
-        } elseif ($node = Site::resolvePath(Site::$pathStack)) {
+        }
+
+        if ($node = Site::resolvePath(Site::$pathStack)) {
             if (method_exists($node, 'outputAsResponse')) {
                 $node->outputAsResponse(true);
             } elseif (is_a($node, 'SiteCollection')) {
@@ -51,7 +52,7 @@ class Emergence
         }
     }
 
-    public static function handleTreeRequest($rootNode = null)
+    public static function handleTreeRequest($rootNode = null): void
     {
         set_time_limit(1800);
         $rootPath = $rootNode ? $rootNode->getFullPath(null, false) : null;
@@ -65,7 +66,7 @@ class Emergence
             $excludedCollections = [];
             $excludedFiles = [];
 
-            foreach (Emergence_FS::getNodesFromPattern($excludes) AS $node) {
+            foreach (Emergence_FS::getNodesFromPattern($excludes) as $node) {
                 if ($node->Class == 'SiteCollection') {
                     $excludedCollections[] = $node->ID;
                 } else {
@@ -99,18 +100,17 @@ class Emergence
         exit();
     }
 
-    public static function buildUrl($path = [], $params = [])
+    public static function buildUrl($path = [], $params = []): string
     {
         $params['accessKey'] = Site::getConfig('parent_key');
 
         $url  = 'http://'.Site::getConfig('parent_hostname').'/emergence';
         $url .= '/'.implode('/', $path);
-        $url .= '?'.http_build_query($params);
 
-        return $url;
+        return $url . ('?' . http_build_query($params));
     }
 
-    public static function executeRequest($url)
+    public static function executeRequest($url): array
     {
         static $ch = null;
 
@@ -131,7 +131,7 @@ class Emergence
         fseek($fp, 0);
 
         // read and check status
-        [$protocol, $status, $message] = explode(' ', trim(fgetss($fp)));
+        [$protocol, $status, $message] = explode(' ', trim(fgets($fp)));
 
         return [
             'status' => (int)$status,
@@ -195,15 +195,12 @@ class Emergence
             }
 
             // read headers until a blank line is found
-            while ($header = trim(fgetss($remoteResponse['resource']))) {
-                if (!$header) {
-                    break;
-                }
+            while ($header = trim(fgets($remoteResponse['resource']))) {
                 [$key, $value] = preg_split('/:\s*/', $header, 2);
                 $key = strtolower($key);
 
                 // if etag found, use it to skip write if existing file matches
-                if ($key == 'etag' && $fileNode && $fileNode->SHA1 == $value) {
+                if ($key === 'etag' && $fileNode && $fileNode->SHA1 == $value) {
                     fclose($remoteResponse['resource']);
                     return $fileNode;
                 }
@@ -230,10 +227,8 @@ class Emergence
             return false;
         }
 
-        while ($header = trim(fgetss($remoteResponse['resource']))) {
-            if (!$header) {
-                break;
-            }
+        // skip headers until a blank line is found
+        while ($header = trim(fgets($remoteResponse['resource']))) {
         }
 
         return json_decode(stream_get_contents($remoteResponse['resource']), true);

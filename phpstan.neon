@@ -1,0 +1,13 @@
+includes:
+    - vendor/phpstan/phpstan-deprecation-rules/rules.neon
+    - vendor/phpstan/phpstan-strict-rules/rules.neon
+    - phpstan-baseline.neon
+
+parameters:
+    level: 5
+    phpVersion: 80300
+    paths:
+        - src
+        - src-compat
+        - handlers
+    treatPhpDocTypesAsCertain: false

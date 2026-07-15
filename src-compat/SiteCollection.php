@@ -11,11 +11,7 @@ class SiteCollection
 
     public function __construct(protected $_handle, $record = null)
     {
-        if ($record) {
-            $this->_record = $record;
-        } else {
-            $this->_record = static::getRecordByHandle($this->_handle);
-        }
+        $this->_record = $record ?: static::getRecordByHandle($this->_handle);
 
         if (!$this->_record) {
             if (static::$autoCreate) {
@@ -26,10 +22,11 @@ class SiteCollection
         }
     }
 
-    public function __get($name)
+    public function __get(string $name): mixed
     {
         switch ($name) {
             case 'ID':
+            case 'FullPath':
                 return $this->_record['path'];
             case 'Class':
                 return self::class;
@@ -46,17 +43,17 @@ class SiteCollection
                     $this->_parent = static::getByID($this->ParentID);
                 }
                 return $this->_parent;
-            case 'FullPath':
-                return $this->_record['path'];
         }
+
+        return null;
     }
 
-    public function __isset($name)
+    public function __isset(string $name)
     {
         return $this->__get($name) !== null;
     }
 
-    public static function getCacheKey($handle, $parentID = null, $remote = false)
+    public static function getCacheKey($handle, $parentID = null, $remote = false): string
     {
         // build cache key and query conditions
         $cacheKey = 'efs:col';
@@ -71,7 +68,7 @@ class SiteCollection
         return $cacheKey.$handle;
     }
 
-    public static function getByID($collectionID)
+    public static function getByID($collectionID): ?self
     {
         $fs = Site::getFilesystem();
 
@@ -118,8 +115,8 @@ class SiteCollection
 
         // query and cache
         $record = DB::oneRecord(
-            'SELECT * FROM `%s` WHERE (%s) ORDER BY ID DESC LIMIT 1'
-            ,[
+            'SELECT * FROM `%s` WHERE (%s) ORDER BY ID DESC LIMIT 1',
+            [
                 static::$tableName
                 ,implode(') AND (', $where)
             ]
@@ -130,7 +127,10 @@ class SiteCollection
         return $record;
     }
 
-    public function getCollectionsTree()
+    /**
+     * @return static[]
+     */
+    public function getCollectionsTree(): array
     {
         DB::nonQuery('LOCK TABLES '.static::$tableName.' READ');
 
@@ -140,8 +140,8 @@ class SiteCollection
         ]);
 
         $collectionResults = DB::query(
-            'SELECT * FROM `%1$s` WHERE PosLeft BETWEEN %2$u AND %3$u AND Status = "Normal"'
-            ,[
+            'SELECT * FROM `%1$s` WHERE PosLeft BETWEEN %2$u AND %3$u AND Status = "Normal"',
+            [
                 static::$tableName
                 ,$positions['PosLeft']
                 ,$positions['PosRight']
@@ -158,27 +158,30 @@ class SiteCollection
         return $children;
     }
 
-    public function getFilesTree()
+    public function getFilesTree(): array
     {
         return SiteFile::getTree($this);
     }
 
-    public static function getByHandle($handle, $parentID = null, $remote = false, $includeDeleted = false)
+    public static function getByHandle($handle, $parentID = null, $remote = false, $includeDeleted = false): ?self
     {
         $record = static::getRecordByHandle($handle, $parentID, $remote, $includeDeleted);
 
         return $record ? new static($record['Handle'], $record) : null;
     }
 
-    public function getChildren()
+    /**
+     * @return object[]
+     */
+    public function getChildren(): array
     {
         $fileClass = static::$fileClass;
         $children = [];
 
         // get collections
         $collectionResults = DB::query(
-            'SELECT * FROM `%s` WHERE ParentID = %u AND Status = "Normal"'
-            ,[
+            'SELECT * FROM `%s` WHERE ParentID = %u AND Status = "Normal"',
+            [
                 static::$tableName
                 ,$this->ID
             ]
@@ -190,8 +193,8 @@ class SiteCollection
 
         // get files
         $fileResults = DB::query(
-            'SELECT f2.* FROM (SELECT MAX(f1.ID) AS ID FROM `%1$s` f1 WHERE CollectionID = %2$u AND Status != "Phantom" GROUP BY f1.Handle) AS lastestFiles LEFT JOIN `%1$s` f2 ON (f2.ID = lastestFiles.ID) WHERE f2.Status = "Normal"'
-            ,[
+            'SELECT f2.* FROM (SELECT MAX(f1.ID) AS ID FROM `%1$s` f1 WHERE CollectionID = %2$u AND Status != "Phantom" GROUP BY f1.Handle) AS lastestFiles LEFT JOIN `%1$s` f2 ON (f2.ID = lastestFiles.ID) WHERE f2.Status = "Normal"',
+            [
                 $fileClass::$tableName
                 ,$this->ID
             ]
@@ -209,7 +212,7 @@ class SiteCollection
         $fileClass = static::$fileClass;
 
         // try to get collection record
-        if ($collection = static::getByHandle($handle, $this->ID, $this->Site == 'Remote')) {
+        if (($collection = static::getByHandle($handle, $this->ID, $this->Site == 'Remote')) instanceof \SiteCollection) {
             return $collection;
         }
 
@@ -225,9 +228,9 @@ class SiteCollection
         return false;
     }
 
-    public function childExists($name)
+    public function childExists($name): bool
     {
-        return (boolean)$this->getChild($name);
+        return (bool)$this->getChild($name);
     }
 
     public function resolvePath($path)
@@ -238,7 +241,7 @@ class SiteCollection
 
         $node = $this;
         while ($childHandle = array_shift($path)) {
-            if (method_exists($node,'getChild') && $nextNode = $node->getChild($childHandle)) {
+            if (method_exists($node, 'getChild') && $nextNode = $node->getChild($childHandle)) {
                 $node = $nextNode;
             } else {
                 $node = false;
@@ -271,7 +274,7 @@ class SiteCollection
         return $fileClass::create($parentCollection->ID, $path[0], $data, $ancestorID);
     }
 
-    public function getLocalizedCollection()
+    public function getLocalizedCollection(): ?\SiteCollection
     {
         if ($this->Site == 'Local') {
             return $this;
@@ -287,9 +290,9 @@ class SiteCollection
         $localNode = null;
         while ($foreignNode = array_pop($tree)) {
             $parentLocalNode = $localNode;
-            $localNode = static::getByHandle($foreignNode->Handle, $parentLocalNode ? $parentLocalNode->ID : null);
+            $localNode = static::getByHandle($foreignNode->Handle, $parentLocalNode instanceof \SiteCollection ? $parentLocalNode->ID : null);
 
-            if (!$localNode) {
+            if (!$localNode instanceof \SiteCollection) {
                 $localNode = static::create($foreignNode->Handle, $parentLocalNode);
             }
         }
@@ -302,7 +305,7 @@ class SiteCollection
         return static::createRecord($handle, $this);
     }
 
-    public function getFullPath($root = null, $prependParent = true)
+    public function getFullPath($root = null, $prependParent = true): array
     {
         if ($root) {
             throw new Exception('non-null $root not supported');
@@ -311,7 +314,10 @@ class SiteCollection
         return explode('/', $this->_record['path']);
     }
 
-    public static function getAllRootCollections($remote = false)
+    /**
+     * @return static[]
+     */
+    public static function getAllRootCollections($remote = false): array
     {
         if (!is_bool($remote)) {
             throw new Exception('SiteID must be converted to (bool)$remote');
@@ -325,22 +331,24 @@ class SiteCollection
         $collections = [];
 
         foreach (Site::getFilesystem()->listContents() as $entry) {
-            if ($entry['type'] != 'dir' || $entry['basename'] == '.git') {
+            if ($entry['type'] != 'dir') {
                 continue;
             }
-
+            if ($entry['basename'] == '.git') {
+                continue;
+            }
             $collections[] = new static($entry['basename'], $entry);
         }
 
         return $collections;
     }
 
-    public static function getOrCreateRootCollection($handle, $remote = false)
+    public static function getOrCreateRootCollection($handle, $remote = false): ?\SiteCollection
     {
         return static::getOrCreateCollection($handle, null, $remote);
     }
 
-    public static function getOrCreateCollection($handle, $parentCollection = null, $remote = false)
+    public static function getOrCreateCollection($handle, $parentCollection = null, $remote = false): ?\SiteCollection
     {
         if (!is_bool($remote)) {
             debug_print_backtrace();
@@ -348,10 +356,10 @@ class SiteCollection
         }
 
         if ($parentCollection) {
-            $remote = $parentCollection->Site=='Remote';
+            $remote = $parentCollection->Site == 'Remote';
         }
 
-        if (!$collection = static::getByHandle($handle, $parentCollection ? $parentCollection->ID : null, $remote)) {
+        if (!($collection = static::getByHandle($handle, $parentCollection ? $parentCollection->ID : null, $remote)) instanceof \SiteCollection) {
             static::createRecord($handle, $parentCollection, $remote);
             $collection = static::getByHandle($handle, $parentCollection ? $parentCollection->ID : null, $remote);
         }
@@ -363,7 +371,7 @@ class SiteCollection
         return $collection;
     }
 
-    public static function create($handle, $parentCollection = null, $remote = false)
+    public static function create($handle, $parentCollection = null, $remote = false): ?\SiteCollection
     {
         $collectionID = static::createRecord($handle, $parentCollection, $remote);
 
@@ -377,8 +385,8 @@ class SiteCollection
 
         // check for existing deleted node
         $existingRecord = DB::oneRecord(
-            'SELECT * FROM `%s` WHERE Site = "%s" AND ParentID = %s AND Handle = "%s"'
-            ,[
+            'SELECT * FROM `%s` WHERE Site = "%s" AND ParentID = %s AND Handle = "%s"',
+            [
                 static::$tableName
                 ,$parentCollection ? $parentCollection->Site : ($remote ? 'Remote' : 'Local')
                 ,$parentCollection ? $parentCollection->ID : 'NULL'
@@ -388,8 +396,8 @@ class SiteCollection
 
         if ($existingRecord) {
             DB::nonQuery(
-                'UPDATE `%s` SET Status = "Normal" WHERE ID = %u'
-                ,[
+                'UPDATE `%s` SET Status = "Normal" WHERE ID = %u',
+                [
                     static::$tableName
                     ,$existingRecord['ID']
                 ]
@@ -413,15 +421,15 @@ class SiteCollection
             if ($parentCollection) {
                 // push rest of set right by 2 to make room
                 DB::nonQuery(
-                    'UPDATE `%s` SET PosRight = PosRight + 2 WHERE PosRight >= %u ORDER BY PosRight DESC'
-                    ,[
+                    'UPDATE `%s` SET PosRight = PosRight + 2 WHERE PosRight >= %u ORDER BY PosRight DESC',
+                    [
                         static::$tableName
                         ,$left
                     ]
                 );
                 DB::nonQuery(
-                    'UPDATE `%s` SET PosLeft = PosLeft + 2 WHERE PosLeft > %u ORDER BY PosLeft DESC'
-                    ,[
+                    'UPDATE `%s` SET PosLeft = PosLeft + 2 WHERE PosLeft > %u ORDER BY PosLeft DESC',
+                    [
                         static::$tableName
                         ,$left
                     ]
@@ -433,7 +441,7 @@ class SiteCollection
                 static::$tableName
                 ,$parentCollection ? $parentCollection->Site : ($remote ? 'Remote' : 'Local')
                 ,DB::escape($handle)
-                ,!empty($GLOBALS['Session']) ? $GLOBALS['Session']->PersonID : null
+                ,empty($GLOBALS['Session']) ? null : $GLOBALS['Session']->PersonID
                 ,$parentCollection ? $parentCollection->ID : 'NULL'
                 ,$left
                 ,$right
@@ -451,7 +459,7 @@ class SiteCollection
         return $newID;
     }
 
-    public function setName($handle)
+    public function setName($handle): void
     {
         Cache::delete(static::getCacheKey($this->Handle, $this->ParentID, $this->Site == 'Remote'));
         Cache::delete(static::getCacheKey($handle, $this->ParentID, $this->Site == 'Remote'));
@@ -464,7 +472,7 @@ class SiteCollection
         ]);
     }
 
-    public function setStatus($status)
+    public function setStatus($status): void
     {
         Cache::delete(static::getCacheKey($this->Handle, $this->ParentID, $this->Site == 'Remote'));
         Cache::delete('efs:col:'.$this->ID);
@@ -476,12 +484,12 @@ class SiteCollection
         ]);
     }
 
-    public function getLastModified()
+    public function getLastModified(): int
     {
         return time();
     }
 
-    public function delete()
+    public function delete(): void
     {
         // FIXME: check if status/handle unique combo already exists
 
@@ -508,7 +516,7 @@ class SiteCollection
         static::clearCacheTree($this->_record);
     }
 
-    public function clearCacheTree($record)
+    public function clearCacheTree($record): void
     {
         $key = static::getCacheKey($record['Handle'], $record['ParentID'], $record['Site'] == 'Remote');
 
@@ -517,7 +525,7 @@ class SiteCollection
         // iterate child collections
         $childCollectionsKey = static::getCacheKey('.*', $record['ID'], $record['Site'] == 'Remote');
 
-        foreach (Cache::getIterator('|^'.$childCollectionsKey.'|') AS $childCollection) {
+        foreach (Cache::getIterator('|^'.$childCollectionsKey.'|') as $childCollection) {
             if ($childCollection['value']) {
                 static::clearCacheTree($childCollection['value']);
             }
@@ -526,7 +534,7 @@ class SiteCollection
         // iterate child files
         $childFilesKey = SiteFile::getCacheKey($record['ID'], '.*');
 
-        foreach (Cache::getIterator('|^'.$childFilesKey.'|') AS $childFile) {
+        foreach (Cache::getIterator('|^'.$childFilesKey.'|') as $childFile) {
             if ($childFile['value']) {
                 Cache::delete($childFile['key']);
             }
@@ -546,7 +554,7 @@ class SiteCollection
         return $data;
     }
 
-    public static function getOrCreatePath($path, SiteCollection $root = null)
+    public static function getOrCreatePath($path, SiteCollection $root = null): ?\SiteCollection
     {
         if (!is_array($path)) {
             $path = Site::splitPath($path);

@@ -10,7 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] != 'POST') {
 
 $commands = json_decode(file_get_contents('php://input'), true);
 
-foreach ($commands AS $command) {
+foreach ($commands as $command) {
     $key = $command['key'];
 
     if (!empty($command['site'])) {

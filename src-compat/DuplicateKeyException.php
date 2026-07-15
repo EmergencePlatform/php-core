@@ -2,8 +2,8 @@
 
 class DuplicateKeyException extends Exception
 {
-    private $duplicateKey;
-    private $duplicateValue;
+    private ?string $duplicateKey = null;
+    private ?string $duplicateValue = null;
 
     public function __construct($message, $code = 0, Exception $previous = null)
     {
@@ -15,12 +15,12 @@ class DuplicateKeyException extends Exception
         parent::__construct($message, $code, $previous);
     }
 
-    public function getDuplicateKey()
+    public function getDuplicateKey(): ?string
     {
         return $this->duplicateKey;
     }
 
-    public function getDuplicateValue()
+    public function getDuplicateValue(): ?string
     {
         return $this->duplicateValue;
     }

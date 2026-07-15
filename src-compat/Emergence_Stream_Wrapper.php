@@ -1,20 +1,26 @@
 <?php
+
 class Emergence_Stream_Wrapper
 {
+    public $fp;
+    /**
+     * @var int
+     */
+    public $dh;
     public $position;
     public $varname;
     public $activeNode;
     public $file;
 
-    public function __contruct()
+    public function __contruct(): void
     {
-        $this->fp =0;
-        $this->dh =0;
+        $this->fp = 0;
+        $this->dh = 0;
     }
 
     public static function getByEmergenceVFS($path)
     {
-        $vfsPath = static::get_virtual_path(str_replace('vfs://','',$path));
+        $vfsPath = static::get_virtual_path(str_replace('vfs://', '', $path));
 
         $templateNode = false;
 
@@ -46,7 +52,7 @@ class Emergence_Stream_Wrapper
         return $templateNode;
     }
 
-    public function stream_open($path ,  $mode ,  $options ,  &$opened_path)
+    public function stream_open($path, $mode, $options, &$opened_path): bool
     {
         $this->position = 0;
         $this->fp = false;
@@ -62,18 +68,18 @@ class Emergence_Stream_Wrapper
         return $this->fp !== false;
     }
 
-    public function stream_read($bytes)
+    public function stream_read($bytes): string|false
     {
-        return fread($this->fp,$bytes);
+        return fread($this->fp, $bytes);
     }
 
-    public function stream_stat()
+    public function stream_stat(): array|false
     {
         clearstatcache();
         return fstat($this->fp);
     }
 
-    public function stream_eof()
+    public function stream_eof(): bool
     {
         return feof($this->fp);
     }
@@ -81,12 +87,12 @@ class Emergence_Stream_Wrapper
     public function url_stat($path, $flags)
     {
         clearstatcache();
-
         if (static::is_real_path($path)) {
             return fstat(static::get_real_handle($path));
-        } elseif ($this->activeNode = static::getByEmergenceVFS($path)) {
-            $mode = 0;
+        }
 
+        if ($this->activeNode = static::getByEmergenceVFS($path)) {
+            $mode = 0;
             if (is_a($this->activeNode, 'SiteFile')) {
                 $timestamp = $this->activeNode->Timestamp;
                 $size = $this->activeNode->Size;
@@ -96,7 +102,6 @@ class Emergence_Stream_Wrapper
                 $size = 4096;
                 $mode |= 0040000;
             }
-
             return [
                 'dev' => 0
                 ,'ino' => 0
@@ -113,9 +118,10 @@ class Emergence_Stream_Wrapper
                 ,'blocks' => -1
             ];
         }
+        return null;
     }
 
-    public static function is_real_path($path)
+    public static function is_real_path($path): bool
     {
         return (str_starts_with((string) $path, (string) Site::$rootPath));
     }
@@ -136,12 +142,11 @@ class Emergence_Stream_Wrapper
         return $fp;
     }
 
-    public static function get_virtual_path($path)
+    public static function get_virtual_path($path): string
     {
         if ($path[0] == '/') {
             return substr((string) $path, 1);
-        } else {
-            return 'site-root/'.$path;
         }
+        return 'site-root/'.$path;
     }
 }

@@ -1,2 +1,5 @@
 /vendor/
 results/
+.php-cs-fixer.cache
+.rector-cache/
+.psalm-cache/

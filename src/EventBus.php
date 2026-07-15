@@ -8,7 +8,10 @@ use Emergence_FS;
 
 class EventBus
 {
-    public static function fireEvent($name, $context, $payload = [])
+    /**
+     * @return mixed[]
+     */
+    public static function fireEvent($name, $context, $payload = []): array
     {
         $_EVENT = array_merge($payload, [
             'NAME' => $name,
@@ -22,7 +25,7 @@ class EventBus
             $_EVENT['CURRENT_HANDLER_ID'] = $fileSystemPath;
 
             // create a closure for executing hanlder so that $_EVENT is the only variable pre-defined in its scope
-            $handler = function() use (&$_EVENT) {
+            $handler = function () use (&$_EVENT) {
                 return include($_EVENT['CURRENT_HANDLER_ID']);
             };
 
@@ -55,7 +58,7 @@ class EventBus
         while (true) {
             $contextPath = $rootCollection;
 
-            if (count($context)) {
+            if (count($context) > 0) {
                 $contextPath .= '/'.implode('/', $context);
             }
 
@@ -66,7 +69,7 @@ class EventBus
             $eventPath = $contextPath.'/'.$key;
             $handlerNodes = Emergence_FS::getAggregateChildren($eventPath);
             ksort($handlerNodes);
-            foreach ($handlerNodes AS $filename => $node) {
+            foreach ($handlerNodes as $filename => $node) {
                 if ($node->Type == 'application/php') {
                     $handlers[$eventPath.'/'.$filename] = $node->RealPath;
                 }
@@ -75,13 +78,13 @@ class EventBus
             $eventPath = $contextPath.'/~';
             $handlerNodes = Emergence_FS::getAggregateChildren($eventPath);
             ksort($handlerNodes);
-            foreach ($handlerNodes AS $filename => $node) {
+            foreach ($handlerNodes as $filename => $node) {
                 if ($node->Type == 'application/php') {
                     $handlers[$eventPath.'/'.$filename] = $node->RealPath;
                 }
             }
 
-            if (count($context)) {
+            if (count($context) > 0) {
                 array_pop($context);
             } else {
                 break;

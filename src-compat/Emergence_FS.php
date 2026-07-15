@@ -7,7 +7,7 @@
  */
 class Emergence_FS_Deferred_SHA1 implements \Stringable
 {
-    private $hash;
+    private string|bool|null $hash = null;
 
     public function __construct(private $path)
     {
@@ -26,7 +26,7 @@ class Emergence_FS_Deferred_SHA1 implements \Stringable
 
 class Emergence_FS
 {
-    public static function cacheTree($path, $force = false)
+    public static function cacheTree($path, $force = false): int
     {
         return 0;
     }
@@ -36,7 +36,10 @@ class Emergence_FS
         throw new Exception('TODO: implement getTree');
     }
 
-    public static function getTreeFiles($path = null, $localOnly = false, $fileConditions = [], $collectionConditions = [])
+    /**
+     * @return array{ID: mixed, CollectionID: mixed, SHA1: Emergence_FS_Deferred_SHA1, Site: 'Local'}[]
+     */
+    public static function getTreeFiles($path = null, $localOnly = false, $fileConditions = [], $collectionConditions = []): array
     {
         // check if any parameters not implemented (yet) by this compatibility shim are used
         if ($localOnly) {
@@ -132,7 +135,10 @@ class Emergence_FS
         throw new Exception('TODO: implement getCollectionLayers');
     }
 
-    public static function findFiles($filename, $useRegexp = false, $scope = null, $localOnly = false)
+    /**
+     * @return \SiteFile[]
+     */
+    public static function findFiles($filename, $useRegexp = false, $scope = null, $localOnly = false): array
     {
         // check if any parameters not implemented (yet) by this compatibility shim are used
         if ($localOnly) {
@@ -152,10 +158,8 @@ class Emergence_FS
                 if (!preg_match('#'.str_replace('#', '\#', $filename).'#i', $entry['basename'])) {
                     continue;
                 }
-            } else {
-                if ($entry['basename'] != $filename) {
-                    continue;
-                }
+            } elseif ($entry['basename'] != $filename) {
+                continue;
             }
 
             $files[$entry['path']] = new SiteFile($entry['basename'], $entry);
@@ -164,7 +168,10 @@ class Emergence_FS
         return $files;
     }
 
-    public static function getAggregateChildren($path)
+    /**
+     * @return \SiteCollection[]|\SiteFile[]
+     */
+    public static function getAggregateChildren($path): array
     {
         if (is_array($path)) {
             $path = implode('/', $path);
@@ -192,13 +199,11 @@ class Emergence_FS
         throw new Exception('TODO: implement getNodesFromPattern');
     }
 
-    public static function matchesExclude($relPath, array $excludes)
+    public static function matchesExclude($relPath, array $excludes): bool
     {
-        if ($excludes) {
-            foreach ($excludes as $excludePattern) {
-                if (preg_match($excludePattern, (string) $relPath)) {
-                    return true;
-                }
+        foreach ($excludes as $excludePattern) {
+            if (preg_match($excludePattern, (string) $relPath)) {
+                return true;
             }
         }
 

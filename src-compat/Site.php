@@ -3,7 +3,7 @@
 class Site
 {
     // config properties
-    public static $title = null;
+    public static $title;
     public static $debug = false;
     public static $production = true;
     public static $defaultPage = 'home.php';
@@ -36,7 +36,7 @@ class Site
     protected static $_rootCollections;
     protected static $_config;
 
-    public static function initialize($rootPath, $hostname = null, array $config = [])
+    public static function initialize($rootPath, $hostname = null, array $config = []): void
     {
         static::$initializeTime = microtime(true);
 
@@ -53,7 +53,7 @@ class Site
             $debugHandler = new \Whoops\Handler\PrettyPageHandler();
             $debugHandler->addDataTableCallback(
                 'Routing',
-                fn() => [
+                fn (): array => [
                     'requestPath' => implode('/', Site::$requestPath),
                     'resolvedPath' => implode('/', Site::$resolvedPath),
                     'resolvedNode' => Site::$resolvedNode ? Site::$resolvedNode->FullPath : null,
@@ -65,7 +65,7 @@ class Site
             $whoops->writeToOutput(true);
 
             $whoops->pushHandler(
-                function ($exception, $inspector, $run) {
+                function ($exception, $inspector, $run): int {
                     \Emergence\Logger::crash_error(
                         '{exceptionName}: {exceptionMessage}',
                         [
@@ -99,11 +99,7 @@ class Site
         if ($hostname) {
             static::$hostname = $hostname;
         } elseif (!static::$hostname) {
-            if (!empty(static::$config['primary_hostname'])) {
-                static::$hostname = static::$config['primary_hostname'];
-            } else {
-                static::$hostname = 'localhost';
-            }
+            static::$hostname = empty(static::$config['primary_hostname']) ? 'localhost' : static::$config['primary_hostname'];
         }
 
         // get path stack
@@ -168,7 +164,7 @@ class Site
         }
     }
 
-    public static function onSiteCreated($requestData)
+    public static function onSiteCreated($requestData): void
     {
         // create initial developer
         if (!empty($requestData['create_user'])) {
@@ -204,8 +200,8 @@ class Site
         ) {
             $hostname = strtolower(parse_url($_SERVER['HTTP_ORIGIN'], PHP_URL_HOST));
             if (
-                $hostname == strtolower((string) static::$hostname)
-                || (!empty($_SERVER['HTTP_HOST']) && $hostname == strtolower($_SERVER['HTTP_HOST']))
+                $hostname === strtolower((string) static::$hostname)
+                || (!empty($_SERVER['HTTP_HOST']) && $hostname === strtolower($_SERVER['HTTP_HOST']))
                 || static::$permittedOrigins == '*'
                 || in_array($hostname, static::$permittedOrigins)
             ) {
@@ -294,7 +290,7 @@ class Site
         return static::respondNotFound();
     }
 
-    public static function getRequestPathResult($path)
+    public static function getRequestPathResult($path): array
     {
         // results returned at end:
         $resolvedNode = null;
@@ -317,10 +313,9 @@ class Site
 
             // if path component doesn't already end in .php, check for a .php match first
             if (!str_ends_with((string) $handle, '.php')) {
-                array_push($searchPath, $handle.'.php');
+                $searchPath[] = $handle.'.php';
                 $foundNode = static::resolvePath($searchPath);
                 array_pop($searchPath);
-
                 // don't match a collection as a script
                 if ($foundNode && !is_a($foundNode, 'SiteFile')) {
                     $foundNode = null;
@@ -329,7 +324,7 @@ class Site
 
             // if no script node, try to match provided handle
             if (!$foundNode) {
-                array_push($searchPath, $handle);
+                $searchPath[] = $handle;
                 $foundNode = static::resolvePath($searchPath);
                 array_pop($searchPath);
             }
@@ -362,7 +357,7 @@ class Site
         ];
     }
 
-    public static function executeScript(SiteFile $_SCRIPT_NODE, $_SCRIPT_EXIT = true)
+    public static function executeScript(SiteFile $_SCRIPT_NODE, $_SCRIPT_EXIT = true): void
     {
         // create session
         if (empty($GLOBALS['Session']) && static::$autoCreateSession) {
@@ -411,7 +406,7 @@ class Site
     public static function resolvePath($path, $checkParent = true, $checkCache = true)
     {
         // special case: request for root collection
-        if (is_string($path) && (empty($path) || $path == '/')) {
+        if (is_string($path) && (in_array($path, ['', '0', '/'], true))) {
             return new Emergence\DAV\RootCollection();
         }
 
@@ -436,7 +431,7 @@ class Site
         return null;
     }
 
-    public static function loadClass($className)
+    public static function loadClass($className): void
     {
         $fullClassName = $className;
 
@@ -493,60 +488,60 @@ class Site
         }
     }
 
-    public static function loadConfig($className)
+    public static function loadConfig($className): void
     {
         $cacheKey = 'class-config:'.$className;
 
 
         // TODO: re-enable cache
         // if (!$configFiles = Cache::fetch($cacheKey)) {
-            $fs = static::getFilesystem();
-            $configFiles = [];
+        $fs = static::getFilesystem();
+        $configFiles = [];
 
 
-            // compute file path for given class name
-            if ($lastNsPos = strrpos((string) $className, '\\')) {
-                $namespace = substr((string) $className, 0, $lastNsPos);
-                $className = substr((string) $className, $lastNsPos + 1);
-                $path  = str_replace('\\', DIRECTORY_SEPARATOR, $namespace).DIRECTORY_SEPARATOR;
-            } else {
-                $path = '';
+        // compute file path for given class name
+        if ($lastNsPos = strrpos((string) $className, '\\')) {
+            $namespace = substr((string) $className, 0, $lastNsPos);
+            $className = substr((string) $className, $lastNsPos + 1);
+            $path  = str_replace('\\', DIRECTORY_SEPARATOR, $namespace).DIRECTORY_SEPARATOR;
+        } else {
+            $path = '';
+        }
+
+        $path .= str_replace('_', DIRECTORY_SEPARATOR, $className);
+
+
+        // look for composite config files first
+        $collectionContents = $fs->listContents("php-config/{$path}.config.d");
+
+        foreach ($collectionContents as $child) {
+            if ($child['type'] == 'file' && $child['extension'] == 'php') {
+                $configFiles[] = static::$rootPath.'/site/'.$child['path'];
             }
+        }
 
-            $path .= str_replace('_', DIRECTORY_SEPARATOR, $className);
-
-
-            // look for composite config files first
-            $collectionContents = $fs->listContents("php-config/{$path}.config.d");
-
-            foreach ($collectionContents as $child) {
-                if ($child['type'] == 'file' && $child['extension'] == 'php') {
-                    $configFiles[] = static::$rootPath.'/site/'.$child['path'];
-                }
-            }
-
-            sort($configFiles);
+        sort($configFiles);
 
 
-            // look for primary config file
-            if (
-                (
-                    ($legacyPath = "php-config/{$path}.config.php")
-                    && $fs->has($legacyPath)
-                )
-                || (
-                    // Fall back on looking for Old_School_Underscore_Namespacing in root
-                    empty($namespace)
-                    && $path != $className
-                    && ($legacyPath = "php-config/$className.config.php")
-                    && $fs->has($legacyPath)
-                )
-            ) {
-                $configFiles[] = static::$rootPath.'/site/'.$legacyPath;
-            }
+        // look for primary config file
+        if (
+            (
+                ($legacyPath = "php-config/{$path}.config.php")
+                && $fs->has($legacyPath)
+            )
+            || (
+                // Fall back on looking for Old_School_Underscore_Namespacing in root
+                empty($namespace)
+                && $path != $className
+                && ($legacyPath = "php-config/$className.config.php")
+                && $fs->has($legacyPath)
+            )
+        ) {
+            $configFiles[] = static::$rootPath.'/site/'.$legacyPath;
+        }
 
 
-            Cache::store($cacheKey, $configFiles);
+        Cache::store($cacheKey, $configFiles);
         // }
 
 
@@ -555,7 +550,7 @@ class Site
         }
     }
 
-    public static function respondNotFound($message = 'Page not found')
+    public static function respondNotFound($message = 'Page not found'): void
     {
         if (is_callable(static::$onNotFound)) {
             call_user_func(static::$onNotFound, $message);
@@ -607,7 +602,7 @@ class Site
         return static::$_rootCollections[$handle] = SiteCollection::getOrCreateRootCollection($handle);
     }
 
-    public static function splitPath($path)
+    public static function splitPath($path): array
     {
         return explode('/', ltrim((string) $path, '/'));
     }
@@ -616,19 +611,14 @@ class Site
     {
         if (
             isset($_SERVER['HTTP_X_FORWARDED_PROTO'])
-            && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) == 'https'
+            && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https'
         ) {
             return true;
         }
-
-        if (!empty($_SERVER['HTTPS'])) {
-            return true;
-        }
-
-        return false;
+        return !empty($_SERVER['HTTPS']);
     }
 
-    public static function redirect($path, $get = false, $hash = false)
+    public static function redirect($path, $get = false, $hash = false): void
     {
         if (is_array($path)) {
             $path = implode('/', $path);
@@ -662,27 +652,26 @@ class Site
     {
         if ($index === null) {
             return static::$requestPath;
-        } else {
-            return static::$requestPath[$index];
         }
+        return static::$requestPath[$index];
     }
 
-    public static function matchPath($index, $string)
+    public static function matchPath($index, $string): bool
     {
-        return 0==strcasecmp((string) static::getPath($index), (string) $string);
+        return 0 === strcasecmp((string) static::getPath($index), (string) $string);
     }
 
-    public static function normalizePath($filename)
+    public static function normalizePath($filename): string
     {
         $filename = str_replace('//', '/', $filename);
         $parts = explode('/', $filename);
         $out = [];
         foreach ($parts as $part) {
-            if ($part == '.') {
+            if ($part === '.') {
                 continue;
             }
 
-            if ($part == '..') {
+            if ($part === '..') {
                 array_pop($out);
                 continue;
             }
@@ -693,7 +682,7 @@ class Site
         return implode('/', $out);
     }
 
-    public static function getVersionedRootUrl($path)
+    public static function getVersionedRootUrl($path): string
     {
         if (is_string($path)) {
             $path = static::splitPath($path);
@@ -707,37 +696,32 @@ class Site
 
         if ($Node) {
             return $url.'?_sha1='.$Node->SHA1;
-        } else {
-            return $url;
         }
+        return $url;
     }
 
     public static function getConfig($key = null)
     {
         if ($key) {
-            return array_key_exists($key, static::$_config) ? static::$_config[$key] : null;
-        } else {
-            return static::$_config;
+            return static::$_config[$key] ?? null;
         }
+        return static::$_config;
     }
 
-    public static function finishRequest($exit = true)
+    public static function finishRequest($exit = true): void
     {
         if ($exit) {
             exit();
-        } else {
-            fastcgi_finish_request();
         }
+        fastcgi_finish_request();
     }
 
     /**
      * Set the active timezone for the site
      *
      * @param string $timezone Time zone name as defined in the IANA time zone database
-     *
-     * @return void
      */
-    public static function setTimezone($timezone)
+    public static function setTimezone($timezone): void
     {
         date_default_timezone_set($timezone);
         DB::syncTimezone();
@@ -775,7 +759,7 @@ class Site
         static $whoops;
 
         if (!$whoops) {
-            $whoops = new \Whoops\Run;
+            $whoops = new \Whoops\Run();
         }
 
         return $whoops;

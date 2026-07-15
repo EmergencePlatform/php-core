@@ -1,0 +1,715 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
+			identifier: empty.notAllowed
+			count: 3
+			path: handlers/cache.php
+
+		-
+			message: '#^Loose comparison via "\!\=" is not allowed\.$#'
+			identifier: notEqual.notAllowed
+			count: 1
+			path: handlers/cache.php
+
+		-
+			message: '#^Loose comparison via "\=\=" is not allowed\.$#'
+			identifier: equal.notAllowed
+			count: 1
+			path: handlers/cache.php
+
+		-
+			message: '#^Variable \$action might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: handlers/cache.php
+
+		-
+			message: '#^Call to static method handleMessage\(\) on an unknown class Emergence\\Mail\\Router\.$#'
+			identifier: class.notFound
+			count: 1
+			path: handlers/mail.php
+
+		-
+			message: '#^Foreach overwrites \$hostname with its value variable\.$#'
+			identifier: foreach.valueOverwrite
+			count: 1
+			path: handlers/mail.php
+
+		-
+			message: '#^Only booleans are allowed in a negated boolean, mixed given\.$#'
+			identifier: booleanNot.exprNotBoolean
+			count: 1
+			path: handlers/mail.php
+
+		-
+			message: '#^Only booleans are allowed in a negated boolean, string given\.$#'
+			identifier: booleanNot.exprNotBoolean
+			count: 4
+			path: handlers/mail.php
+
+		-
+			message: '#^Loose comparison via "\=\=" is not allowed\.$#'
+			identifier: equal.notAllowed
+			count: 1
+			path: src-compat/Cache.php
+
+		-
+			message: '#^Unsafe access to private property Cache\:\:\$fallbackCache through static\:\:\.$#'
+			identifier: staticClassAccess.privateProperty
+			count: 11
+			path: src-compat/Cache.php
+
+		-
+			message: '#^Unsafe usage of new static\(\)\.$#'
+			identifier: new.static
+			count: 3
+			path: src-compat/CacheIterator.php
+
+		-
+			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
+			identifier: empty.notAllowed
+			count: 3
+			path: src-compat/DB.php
+
+		-
+			message: '#^Loose comparison via "\!\=" is not allowed\.$#'
+			identifier: notEqual.notAllowed
+			count: 2
+			path: src-compat/DB.php
+
+		-
+			message: '#^Loose comparison via "\=\=" is not allowed\.$#'
+			identifier: equal.notAllowed
+			count: 8
+			path: src-compat/DB.php
+
+		-
+			message: '#^PHPDoc tag @return contains unresolvable type\.$#'
+			identifier: return.unresolvableType
+			count: 1
+			path: src-compat/DB.php
+
+		-
+			message: '#^Short ternary operator is not allowed\. Use null coalesce operator if applicable or consider using long ternary\.$#'
+			identifier: ternary.shortNotAllowed
+			count: 1
+			path: src-compat/DB.php
+
+		-
+			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
+			identifier: empty.notAllowed
+			count: 2
+			path: src-compat/Debug.php
+
+		-
+			message: '#^Loose comparison via "\=\=" is not allowed\.$#'
+			identifier: equal.notAllowed
+			count: 1
+			path: src-compat/Debug.php
+
+		-
+			message: '#^Result of static method Debug\:\:log\(\) \(void\) is used\.$#'
+			identifier: staticMethod.void
+			count: 1
+			path: src-compat/Debug.php
+
+		-
+			message: '#^Call to function method_exists\(\) with ''Emergence_FS'' and ''getNodesFromPattern'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src-compat/Emergence.php
+
+		-
+			message: '#^Call to static method getFromRequest\(\) on an unknown class UserSession\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src-compat/Emergence.php
+
+		-
+			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
+			identifier: empty.notAllowed
+			count: 6
+			path: src-compat/Emergence.php
+
+		-
+			message: '#^Loose comparison via "\!\=" is not allowed\.$#'
+			identifier: notEqual.notAllowed
+			count: 4
+			path: src-compat/Emergence.php
+
+		-
+			message: '#^Loose comparison via "\=\=" is not allowed\.$#'
+			identifier: equal.notAllowed
+			count: 5
+			path: src-compat/Emergence.php
+
+		-
+			message: '#^Only booleans are allowed in an if condition, int\<0, max\> given\.$#'
+			identifier: if.condNotBoolean
+			count: 2
+			path: src-compat/Emergence.php
+
+		-
+			message: '#^Only booleans are allowed in \|\|, int given on the right side\.$#'
+			identifier: booleanOr.rightNotBoolean
+			count: 1
+			path: src-compat/Emergence.php
+
+		-
+			message: '#^Result of static method Emergence\:\:handleTreeRequest\(\) \(void\) is used\.$#'
+			identifier: staticMethod.void
+			count: 2
+			path: src-compat/Emergence.php
+
+		-
+			message: '#^Call to function is_array\(\) with mixed will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 1
+			path: src-compat/Emergence_FS.php
+
+		-
+			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
+			identifier: empty.notAllowed
+			count: 4
+			path: src-compat/Emergence_FS.php
+
+		-
+			message: '#^Loose comparison via "\!\=" is not allowed\.$#'
+			identifier: notEqual.notAllowed
+			count: 4
+			path: src-compat/Emergence_FS.php
+
+		-
+			message: '#^Loose comparison via "\=\=" is not allowed\.$#'
+			identifier: equal.notAllowed
+			count: 1
+			path: src-compat/Emergence_FS.php
+
+		-
+			message: '#^Only booleans are allowed in an if condition, int\<0, max\> given\.$#'
+			identifier: if.condNotBoolean
+			count: 1
+			path: src-compat/Emergence_FS.php
+
+		-
+			message: '#^Access to an undefined property SiteFile\:\:\$Size\.$#'
+			identifier: property.notFound
+			count: 1
+			path: src-compat/Emergence_Stream_Wrapper.php
+
+		-
+			message: '#^Access to an undefined property SiteFile\:\:\$Timestamp\.$#'
+			identifier: property.notFound
+			count: 1
+			path: src-compat/Emergence_Stream_Wrapper.php
+
+		-
+			message: '#^Call to function array_filter\(\) requires parameter \#2 to be passed to avoid loose comparison semantics\.$#'
+			identifier: arrayFilter.strict
+			count: 1
+			path: src-compat/Emergence_Stream_Wrapper.php
+
+		-
+			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
+			identifier: empty.notAllowed
+			count: 1
+			path: src-compat/Emergence_Stream_Wrapper.php
+
+		-
+			message: '#^Loose comparison via "\=\=" is not allowed\.$#'
+			identifier: equal.notAllowed
+			count: 1
+			path: src-compat/Emergence_Stream_Wrapper.php
+
+		-
+			message: '#^Only booleans are allowed in an if condition, int\<0, max\> given\.$#'
+			identifier: if.condNotBoolean
+			count: 1
+			path: src-compat/Emergence_Stream_Wrapper.php
+
+		-
+			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
+			identifier: empty.notAllowed
+			count: 15
+			path: src-compat/HttpProxy.php
+
+		-
+			message: '#^Loose comparison via "\!\=" is not allowed\.$#'
+			identifier: notEqual.notAllowed
+			count: 3
+			path: src-compat/HttpProxy.php
+
+		-
+			message: '#^Loose comparison via "\=\=" is not allowed\.$#'
+			identifier: equal.notAllowed
+			count: 2
+			path: src-compat/HttpProxy.php
+
+		-
+			message: '#^Parameter \#3 \$value of function curl_setopt expects 0\|2, false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src-compat/HttpProxy.php
+
+		-
+			message: '#^Access to an undefined property SiteFile\:\:\$FullPath\.$#'
+			identifier: property.notFound
+			count: 1
+			path: src-compat/Site.php
+
+		-
+			message: '#^Access to an undefined property SiteFile\:\:\$RealPath\.$#'
+			identifier: property.notFound
+			count: 1
+			path: src-compat/Site.php
+
+		-
+			message: '#^Call to an undefined static method Emergence\\Logger\:\:crash_error\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 1
+			path: src-compat/Site.php
+
+		-
+			message: '#^Call to function array_filter\(\) requires parameter \#2 to be passed to avoid loose comparison semantics\.$#'
+			identifier: arrayFilter.strict
+			count: 1
+			path: src-compat/Site.php
+
+		-
+			message: '#^Call to function in_array\(\) requires parameter \#3 to be set\.$#'
+			identifier: function.strict
+			count: 2
+			path: src-compat/Site.php
+
+		-
+			message: '#^Call to static method getFromRequest\(\) on an unknown class UserSession\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src-compat/Site.php
+
+		-
+			message: '#^Call to static method getStaticDefaultClass\(\) on an unknown class User\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src-compat/Site.php
+
+		-
+			message: '#^Class Site referenced with incorrect case\: site\.$#'
+			identifier: class.nameCase
+			count: 1
+			path: src-compat/Site.php
+
+		-
+			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
+			identifier: empty.notAllowed
+			count: 12
+			path: src-compat/Site.php
+
+		-
+			message: '#^Instantiated class Emergence\\DAV\\RootCollection not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src-compat/Site.php
+
+		-
+			message: '#^Left side of && is always true\.$#'
+			identifier: booleanAnd.leftAlwaysTrue
+			count: 1
+			path: src-compat/Site.php
+
+		-
+			message: '#^Loose comparison via "\!\=" is not allowed\.$#'
+			identifier: notEqual.notAllowed
+			count: 2
+			path: src-compat/Site.php
+
+		-
+			message: '#^Loose comparison via "\=\=" is not allowed\.$#'
+			identifier: equal.notAllowed
+			count: 10
+			path: src-compat/Site.php
+
+		-
+			message: '#^Only booleans are allowed in &&, string given on the left side\.$#'
+			identifier: booleanAnd.leftNotBoolean
+			count: 1
+			path: src-compat/Site.php
+
+		-
+			message: '#^Only booleans are allowed in &&, string given on the right side\.$#'
+			identifier: booleanAnd.rightNotBoolean
+			count: 1
+			path: src-compat/Site.php
+
+		-
+			message: '#^Parameter \#1 \$callback of function call_user_func expects callable\(\)\: mixed, array\{class\-string, ''__classLoaded''\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src-compat/Site.php
+
+		-
+			message: '#^Result of static method Site\:\:executeScript\(\) \(void\) is used\.$#'
+			identifier: staticMethod.void
+			count: 1
+			path: src-compat/Site.php
+
+		-
+			message: '#^Result of static method Site\:\:redirect\(\) \(void\) is used\.$#'
+			identifier: staticMethod.void
+			count: 1
+			path: src-compat/Site.php
+
+		-
+			message: '#^Result of static method Site\:\:respondNotFound\(\) \(void\) is used\.$#'
+			identifier: staticMethod.void
+			count: 3
+			path: src-compat/Site.php
+
+		-
+			message: '#^Right side of && is always true\.$#'
+			identifier: booleanAnd.rightAlwaysTrue
+			count: 1
+			path: src-compat/Site.php
+
+		-
+			message: '#^Short ternary operator is not allowed\. Use null coalesce operator if applicable or consider using long ternary\.$#'
+			identifier: ternary.shortNotAllowed
+			count: 2
+			path: src-compat/Site.php
+
+		-
+			message: '#^Variable \$classNode might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: src-compat/Site.php
+
+		-
+			message: '#^Access to an undefined property SiteCollection\:\:\$Class\.$#'
+			identifier: property.notFound
+			count: 1
+			path: src-compat/SiteCollection.php
+
+		-
+			message: '#^Access to an undefined property SiteCollection\:\:\$FullPath\.$#'
+			identifier: property.notFound
+			count: 1
+			path: src-compat/SiteCollection.php
+
+		-
+			message: '#^Access to an undefined property SiteCollection\:\:\$Handle\.$#'
+			identifier: property.notFound
+			count: 5
+			path: src-compat/SiteCollection.php
+
+		-
+			message: '#^Access to an undefined property SiteCollection\:\:\$ID\.$#'
+			identifier: property.notFound
+			count: 12
+			path: src-compat/SiteCollection.php
+
+		-
+			message: '#^Access to an undefined property SiteCollection\:\:\$ParentID\.$#'
+			identifier: property.notFound
+			count: 5
+			path: src-compat/SiteCollection.php
+
+		-
+			message: '#^Access to an undefined property SiteCollection\:\:\$Site\.$#'
+			identifier: property.notFound
+			count: 5
+			path: src-compat/SiteCollection.php
+
+		-
+			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
+			identifier: empty.notAllowed
+			count: 1
+			path: src-compat/SiteCollection.php
+
+		-
+			message: '#^Implicit array creation is not allowed \- variable \$where does not exist\.$#'
+			identifier: variable.implicitArray
+			count: 1
+			path: src-compat/SiteCollection.php
+
+		-
+			message: '#^Loose comparison via "\!\=" is not allowed\.$#'
+			identifier: notEqual.notAllowed
+			count: 2
+			path: src-compat/SiteCollection.php
+
+		-
+			message: '#^Loose comparison via "\=\=" is not allowed\.$#'
+			identifier: equal.notAllowed
+			count: 10
+			path: src-compat/SiteCollection.php
+
+		-
+			message: '#^Only booleans are allowed in an if condition, mixed given\.$#'
+			identifier: if.condNotBoolean
+			count: 2
+			path: src-compat/SiteCollection.php
+
+		-
+			message: '#^Short ternary operator is not allowed\. Use null coalesce operator if applicable or consider using long ternary\.$#'
+			identifier: ternary.shortNotAllowed
+			count: 1
+			path: src-compat/SiteCollection.php
+
+		-
+			message: '#^Unsafe usage of new static\(\)\.$#'
+			identifier: new.static
+			count: 5
+			path: src-compat/SiteCollection.php
+
+		-
+			message: '#^Access to an undefined property SiteCollection\:\:\$ID\.$#'
+			identifier: property.notFound
+			count: 3
+			path: src-compat/SiteFile.php
+
+		-
+			message: '#^Access to an undefined property SiteFile\:\:\$AncestorID\.$#'
+			identifier: property.notFound
+			count: 1
+			path: src-compat/SiteFile.php
+
+		-
+			message: '#^Access to an undefined property SiteFile\:\:\$Author\.$#'
+			identifier: property.notFound
+			count: 1
+			path: src-compat/SiteFile.php
+
+		-
+			message: '#^Access to an undefined property SiteFile\:\:\$AuthorID\.$#'
+			identifier: property.notFound
+			count: 4
+			path: src-compat/SiteFile.php
+
+		-
+			message: '#^Access to an undefined property SiteFile\:\:\$Class\.$#'
+			identifier: property.notFound
+			count: 1
+			path: src-compat/SiteFile.php
+
+		-
+			message: '#^Access to an undefined property SiteFile\:\:\$Collection\.$#'
+			identifier: property.notFound
+			count: 1
+			path: src-compat/SiteFile.php
+
+		-
+			message: '#^Access to an undefined property SiteFile\:\:\$CollectionID\.$#'
+			identifier: property.notFound
+			count: 9
+			path: src-compat/SiteFile.php
+
+		-
+			message: '#^Access to an undefined property SiteFile\:\:\$FullPath\.$#'
+			identifier: property.notFound
+			count: 1
+			path: src-compat/SiteFile.php
+
+		-
+			message: '#^Access to an undefined property SiteFile\:\:\$Handle\.$#'
+			identifier: property.notFound
+			count: 7
+			path: src-compat/SiteFile.php
+
+		-
+			message: '#^Access to an undefined property SiteFile\:\:\$ID\.$#'
+			identifier: property.notFound
+			count: 7
+			path: src-compat/SiteFile.php
+
+		-
+			message: '#^Access to an undefined property SiteFile\:\:\$MIMEType\.$#'
+			identifier: property.notFound
+			count: 3
+			path: src-compat/SiteFile.php
+
+		-
+			message: '#^Access to an undefined property SiteFile\:\:\$RealPath\.$#'
+			identifier: property.notFound
+			count: 4
+			path: src-compat/SiteFile.php
+
+		-
+			message: '#^Access to an undefined property SiteFile\:\:\$SHA1\.$#'
+			identifier: property.notFound
+			count: 6
+			path: src-compat/SiteFile.php
+
+		-
+			message: '#^Access to an undefined property SiteFile\:\:\$Size\.$#'
+			identifier: property.notFound
+			count: 4
+			path: src-compat/SiteFile.php
+
+		-
+			message: '#^Access to an undefined property SiteFile\:\:\$Status\.$#'
+			identifier: property.notFound
+			count: 3
+			path: src-compat/SiteFile.php
+
+		-
+			message: '#^Access to an undefined property SiteFile\:\:\$Timestamp\.$#'
+			identifier: property.notFound
+			count: 3
+			path: src-compat/SiteFile.php
+
+		-
+			message: '#^Access to an undefined property SiteFile\:\:\$Type\.$#'
+			identifier: property.notFound
+			count: 1
+			path: src-compat/SiteFile.php
+
+		-
+			message: '#^Access to an undefined property SiteFile\:\:\$_author\.$#'
+			identifier: property.notFound
+			count: 1
+			path: src-compat/SiteFile.php
+
+		-
+			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
+			identifier: empty.notAllowed
+			count: 10
+			path: src-compat/SiteFile.php
+
+		-
+			message: '#^Loose comparison via "\!\=" is not allowed\.$#'
+			identifier: notEqual.notAllowed
+			count: 3
+			path: src-compat/SiteFile.php
+
+		-
+			message: '#^Loose comparison via "\=\=" is not allowed\.$#'
+			identifier: equal.notAllowed
+			count: 8
+			path: src-compat/SiteFile.php
+
+		-
+			message: '#^Only booleans are allowed in &&, string given on the left side\.$#'
+			identifier: booleanAnd.leftNotBoolean
+			count: 1
+			path: src-compat/SiteFile.php
+
+		-
+			message: '#^Short ternary operator is not allowed\. Use null coalesce operator if applicable or consider using long ternary\.$#'
+			identifier: ternary.shortNotAllowed
+			count: 4
+			path: src-compat/SiteFile.php
+
+		-
+			message: '#^Unsafe usage of new static\(\)\.$#'
+			identifier: new.static
+			count: 4
+			path: src-compat/SiteFile.php
+
+		-
+			message: '#^Access to an undefined property SiteCollection\|SiteFile\:\:\$RealPath\.$#'
+			identifier: property.notFound
+			count: 2
+			path: src/EventBus.php
+
+		-
+			message: '#^Access to an undefined property SiteCollection\|SiteFile\:\:\$Type\.$#'
+			identifier: property.notFound
+			count: 2
+			path: src/EventBus.php
+
+		-
+			message: '#^Call to Emergence_FS\:\:cacheTree\(\) on a separate line has no effect\.$#'
+			identifier: staticMethod.resultUnused
+			count: 1
+			path: src/EventBus.php
+
+		-
+			message: '#^Loose comparison via "\=\=" is not allowed\.$#'
+			identifier: equal.notAllowed
+			count: 2
+			path: src/EventBus.php
+
+		-
+			message: '#^Access to an undefined property SiteFile\:\:\$FullPath\.$#'
+			identifier: property.notFound
+			count: 1
+			path: src/Logger.php
+
+		-
+			message: '#^Anonymous function never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: src/Logger.php
+
+		-
+			message: '#^Call to function in_array\(\) requires parameter \#3 to be set\.$#'
+			identifier: function.strict
+			count: 2
+			path: src/Logger.php
+
+		-
+			message: '#^Call to method getNewValues\(\) on an unknown class Emergence\\KeyedDiff\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Logger.php
+
+		-
+			message: '#^Call to method getOldValues\(\) on an unknown class Emergence\\KeyedDiff\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Logger.php
+
+		-
+			message: '#^Call to static method send\(\) on an unknown class Emergence\\Mailer\\Mailer\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Logger.php
+
+		-
+			message: '#^Class Emergence\\KeyedDiff not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: src/Logger.php
+
+		-
+			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
+			identifier: empty.notAllowed
+			count: 15
+			path: src/Logger.php
+
+		-
+			message: '#^Foreach overwrites \$value with its value variable\.$#'
+			identifier: foreach.valueOverwrite
+			count: 1
+			path: src/Logger.php
+
+		-
+			message: '#^Loose comparison via "\!\=" is not allowed\.$#'
+			identifier: notEqual.notAllowed
+			count: 1
+			path: src/Logger.php
+
+		-
+			message: '#^Loose comparison via "\=\=" is not allowed\.$#'
+			identifier: equal.notAllowed
+			count: 5
+			path: src/Logger.php
+
+		-
+			message: '#^Short ternary operator is not allowed\. Use null coalesce operator if applicable or consider using long ternary\.$#'
+			identifier: ternary.shortNotAllowed
+			count: 1
+			path: src/Logger.php
+
+		-
+			message: '#^Unsafe access to private property Emergence\\Logger\:\:\$instances through static\:\:\.$#'
+			identifier: staticClassAccess.privateProperty
+			count: 4
+			path: src/Logger.php
+
+		-
+			message: '#^Unsafe usage of new static\(\)\.$#'
+			identifier: new.static
+			count: 1
+			path: src/Logger.php
