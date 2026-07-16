@@ -21,7 +21,8 @@
         "filp/whoops": "^2.15",
         "larapack/dd": "^1.1",
         "league/flysystem": "^1.1",
-        "psr/log": "^1.1"
+        "psr/log": "^1.1",
+        "superbalist/flysystem-google-storage": "^7.2"
     },
     "require-dev": {
         "rector/rector": "^2.5",
@@ -30,5 +31,12 @@
         "phpstan/phpstan-strict-rules": "^2.0",
         "vimeo/psalm": "^6.16",
         "friendsofphp/php-cs-fixer": "^3.95"
+    },
+    "config": {
+        "policy": {
+            "advisories": {
+                "ignore-id": ["PKSA-y2cr-5h3j-g3ys"]
+            }
+        }
     }
 }
