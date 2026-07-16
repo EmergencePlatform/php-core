@@ -8,7 +8,6 @@ use League\Flysystem\Adapter\Local as LocalAdapter;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Filesystem;
 use League\Flysystem\FilesystemInterface;
-use Superbalist\Flysystem\GoogleStorage\GoogleStorageAdapter;
 
 /**
  * Builds Flysystem 1.x filesystems from declarative config arrays, so a
@@ -79,7 +78,10 @@ class FilesystemFactory
             throw new InvalidArgumentException('gcs storage driver requires a bucket name');
         }
 
-        $clientConfig = [];
+        // bucket-scoped operations don't require a project id (buckets are
+        // globally addressable); silence the client's keyfile notice when
+        // credentials (e.g. authorized_user ADC) don't carry one
+        $clientConfig = ['suppressKeyFileNotice' => true];
 
         if (($projectId = static::getStringOption($config, 'project_id')) !== null) {
             $clientConfig['projectId'] = $projectId;
@@ -91,7 +93,7 @@ class FilesystemFactory
 
         $client = new StorageClient($clientConfig);
 
-        return new GoogleStorageAdapter(
+        return new GoogleCloudStorageAdapter(
             $client,
             $client->bucket($bucket),
             static::getStringOption($config, 'prefix')
