@@ -5,6 +5,7 @@ $finder = (new PhpCsFixer\Finder())
         __DIR__.'/src',
         __DIR__.'/src-compat',
         __DIR__.'/handlers',
+        __DIR__.'/tests',
     ]);
 
 return (new PhpCsFixer\Config())

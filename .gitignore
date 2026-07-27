@@ -3,3 +3,4 @@ results/
 .php-cs-fixer.cache
 .rector-cache/
 .psalm-cache/
+.phpunit.cache/

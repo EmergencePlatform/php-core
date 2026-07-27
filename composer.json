@@ -15,6 +15,11 @@
             "Emergence\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Emergence\\Tests\\": "tests/"
+        }
+    },
     "require": {
         "php": "^8.1",
         "symfony/var-dumper": "^5.4",
