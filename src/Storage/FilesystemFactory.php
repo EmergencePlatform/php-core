@@ -23,7 +23,13 @@ use League\Flysystem\FilesystemInterface;
  *         'driver' => 'gcs',
  *         'bucket' => 'my-site-media',
  *
- *         // optional path prefix within the bucket
+ *         // optional path prefix within the bucket, so multiple
+ *         // deployments can share one bucket under distinct prefixes.
+ *         // Normalized to `{prefix}/` form: leading slashes are trimmed
+ *         // and exactly one trailing slash is ensured, so `my-prefix`,
+ *         // `my-prefix/`, and `/my-prefix` are all equivalent. Omit (or
+ *         // pass '') to address the bucket root, unchanged from before
+ *         // this option existed.
  *         'prefix' => '',
  *
  *         // optional, else resolved from credentials
