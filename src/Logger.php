@@ -127,6 +127,16 @@ class Logger extends \Psr\Log\AbstractLogger
         }
 
         if (in_array($level, static::$logLevelsWrite)) {
+            // mirror to the SAPI error log (stderr under php-fpm in a
+            // container) so platform log collectors see failures — the
+            // file below is container-local and dies with the instance
+            error_log(sprintf(
+                'emergence-log [%s] %s %s',
+                $level,
+                $message,
+                substr((string)json_encode($context, JSON_PARTIAL_OUTPUT_ON_ERROR), 0, 2000)
+            ));
+
             file_put_contents(
                 $this->path,
                 date('Y-m-d H:i:s')." [$level] $message\n\t"
